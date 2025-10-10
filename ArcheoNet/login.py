@@ -17,27 +17,30 @@ conn = sqlite3.connect("users.db")
 cursor = conn.cursor()
 try:
     cursor.execute("""CREATE TABLE users    (
-                    email TEXT PRIMARY KEY,
+                    username TEXT PRIMARY KEY,
                     password TEXT
         )""")
     conn.commit()
 except sqlite3.OperationalError:
     print("Table already exists")
 
-def register_user(email, password):
-    try:
-        cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
-        conn.commit()
-        return True
-    except sqlite3.IntegrityError:
-        return "User already exists"
-    except sqlite3.DatabaseError:
-        return "Database error, please refresh this page"
+def register_user(username, password):
+    if username == None or password == None:
+        return "Please insert a value"
+    else:
+        try:
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+            return "User succesfully created"
+        except sqlite3.IntegrityError:
+            return "User already exists"
+        except sqlite3.DatabaseError:
+            return "Database error, please refresh this page"
 
 
-def verify_user(email, password):
+def verify_user(username, password):
 
-    cursor.execute("SELECT * FROM users WHERE email=? AND password=?", (email, password))
+    cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
     result = cursor.fetchone()
     print(result)
     if result:
@@ -49,11 +52,14 @@ def verify_user(email, password):
 if "option" not in st.session_state:
     st.session_state.option = None
 
+if "userID" not in st.session_state:
+    st.session_state['userID'] = None
+
 st.markdown("""
 <style>
 div.stButton > button {
     width: 90vw;
-    max-width: 400px;
+    max-width: 900px;
     margin: 10px auto;
     display: block;
     font-size: 1.2em;
@@ -93,43 +99,70 @@ def login_page():
     st.caption("Login")
 
     with st.form(key="login"):
-        email = st.text_input("E-mail")
+
+        username = st.text_input("E-mail")
 
         password = st.text_input("Password", type="password")
 
         if st.form_submit_button():
-            result = verify_user(email, password)
-            st.write(result)
+            result = verify_user(username, password)
+
+            if result == True:
+                st.session_state['userID'] = username
+                st.success(result)
+                st.switch_page("pages/app.py")
+
+            else:
+                st.error(result)
 
 
 def register_page():
     st.caption("Register")
 
     with st.form(key="register"):
-        reg_email = st.text_input("Enter e-mail")
+        reg_username = st.text_input("Enter e-mail")
 
         reg_password = st.text_input("Enter password", type="password")
 
         if st.form_submit_button():
-            result = register_user(reg_email, reg_password)
+            result = register_user(reg_username, reg_password)
             st.write(result)
+            st.session_state.option = "Login"
+            st.rerun()
+
+
 
 
 if st.session_state.option == "Register":
     register_page()
+
 elif st.session_state.option == "Login":
     login_page()
+
 else:
     st.caption("Please chose one of the options below:")
 
 
 # Vertical, centered buttons
-if st.button("Login"):
-    st.session_state.option = "Login"
-    st.rerun()
+if st.session_state.option == "Register":
+    if st.button("Login"):
+        st.session_state.option = "Login"
+        st.rerun()
 
-if st.button("Register"):
-    st.session_state.option = "Register"
-    st.rerun()
+elif st.session_state.option == "Login":
+    if st.button("Register"):
+        st.session_state.option = "Register"
+        st.rerun()
 
-# streamlit run login.py --server.sslCertFile=cert.pem --server.sslKeyFile=key.pem
+else:
+    if st.button("Login"):
+        st.session_state.option = "Login"
+        st.rerun()
+
+    if st.button("Register"):
+        st.session_state.option = "Register"
+        st.rerun()
+
+st.markdown('<a href="/app" target="_self">Continue to app</a>', unsafe_allow_html=True)
+
+# streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
