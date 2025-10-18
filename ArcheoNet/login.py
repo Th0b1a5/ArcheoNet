@@ -9,13 +9,26 @@ import pydeck as pdk
 import sqlite3
 import time
 import socket
-
+import re
 
 
 
 
 
 # ===== SETUP =====
+st.set_page_config(
+    page_title="ArcheoNet DEV VERSION (alpaha) Login",
+    page_icon="📚",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+if "option" not in st.session_state:
+    st.session_state.option = None
+
+if "userID" not in st.session_state:
+    st.session_state['userID'] = None
+
 conn = sqlite3.connect("users.db")
 cursor = conn.cursor()
 try:
@@ -27,41 +40,44 @@ try:
 except sqlite3.OperationalError:
     print("Table already exists")
 
+allowed_char = r"a-zA-Z0-9\-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
+pattern_char = rf"^[{allowed_char}]+$"
+
 def register_user(username, password):
-    if username == None or password == None:
+    if username == None or password == None or username == "" or password == "":
         return "Please insert a value"
+    
+    elif not re.match(pattern_char, username):
+        return f"Username contains unwanted characters. Allowed characters: {allowed_char}"
+
     else:
         try:
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
-            return "User succesfully created"
+            return True
+        
         except sqlite3.IntegrityError:
             return "User already exists"
+        
         except sqlite3.DatabaseError:
             return "Database error, please refresh this page"
 
 def verify_user(username, password):
-
     cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
     result = cursor.fetchone()
     print(result)
+
     if result:
         conn.close()
         return True
     else:
         return "User not found or password incorrect"
 
-if "option" not in st.session_state:
-    st.session_state.option = None
-
-if "userID" not in st.session_state:
-    st.session_state['userID'] = None
 
 st.markdown("""
 <style>
 div.stButton > button {
     width: 90vw;
-    max-width: 900px;
     margin: 10px auto;
     display: block;
     font-size: 1.2em;
@@ -85,19 +101,6 @@ getClientIP();
 
 ip = streamlit_js_eval(js_expressions=ip)
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip}")
-
-st.set_page_config(
-    page_title="ArcheoNet DEV VERSION (alpaha) Login",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-
-
-
-
-
 
 
 
@@ -135,11 +138,12 @@ def register_page():
 
         if st.form_submit_button():
             result = register_user(reg_username, reg_password)
-            st.write(result)
-            st.session_state.option = "Login"
-            st.rerun()
-
-
+            
+            if result == True:
+                st.session_state.option = "Login"
+                st.rerun()
+            else:
+                st.error(result)
 
 
 if st.session_state.option == "Register":
@@ -172,6 +176,5 @@ else:
         st.session_state.option = "Register"
         st.rerun()
 
-st.markdown('<a href="/app" target="_self">Continue to app</a>', unsafe_allow_html=True)
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

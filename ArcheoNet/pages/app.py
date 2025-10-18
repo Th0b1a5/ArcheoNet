@@ -10,32 +10,19 @@ import sqlite3
 import base64
 from io import BytesIO
 from PIL import Image, ImageOps
+import re
 import time
 import socket
+import secrets
 
 # ===== SCRIPTS =====
 try:
 	username = (st.session_state['userID'])
 except:
 	st.switch_page("login.py")
+
 if st.session_state["userID"] == None:
 	st.switch_page("login.py")
-
-   
-conn = sqlite3.connect("map_posts.db")
-cursor = conn.cursor()
-try:
-	cursor.execute("""CREATE TABLE map_posts    (
-					longitude REAL,
-					latitude REAL,
-					owner TEXT,
-					timamestamp TEXT,
-					description TEXT,
-					image BLOB
-		)""")
-	conn.commit()
-except sqlite3.OperationalError:
-	print("Table already exists")
 
 st.markdown("""
 <style>
@@ -53,71 +40,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
-def get_geolocation():
-
-	getgeolocation = """
-	new Promise((resolve, reject) => {
-	  navigator.geolocation.getCurrentPosition(
-		pos => resolve({
-		  latitude: pos.coords.latitude,
-		  longitude: pos.coords.longitude,
-		  accuracy: pos.coords.accuracy,
-		  error: null
-		}),
-		err => resolve({
-		  latitude: 0.00,
-		  longitude: 0.00,
-		  accuracy: 0.00,
-		  error: err.message
-		})
-	  );
-	});
-	"""
-
-	loc = (streamlit_js_eval(js_expressions=getgeolocation))
-
-	try:
-		latitude = loc["latitude"]
-		longitude = loc["longitude"]
-	except:
-		latitude = 0.00
-		longitude = 0.00
-		print("Location data is unavatible")
-
-	return latitude, longitude
-
-
-def map_post():
-	st.title("Create a map post")
-	# ======= Get data from user =======	
- 
-	name = st.text_input("Name your find!", key="post_name")
-	description = st.text_area("Describe your find!", key="post_description")
-	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-	uploaded_file = st.file_uploader("Take a picture!", type=["jpg", "jpeg", "png"])
-	if uploaded_file:
-		img = Image.open(uploaded_file)
-		img = ImageOps.exif_transpose(img)  # Auto-rotate based on EXIF tag
-		st.image(img)
-  
-	# ======= User location =======
-	st.header("Your location")
-	user_loc = get_geolocation()
-	latitude = user_loc[0]
-	longitude = user_loc[1]
-
-
-	user_pos = pd.DataFrame({
-		"latitude": [latitude],
-		"longitude": [longitude]
-	})
-
-	st.map(user_pos)
-
-
-
+st.markdown("""
+<style>
+div.stButton > button {
+    width: 90vw;
+    margin: 10px auto;
+    display: block;
+    font-size: 1.2em;
+    padding: 1em 0.5em;
+}
+</style>
+""", unsafe_allow_html=True)
 
 ip = """
 async function getClientIP() {
@@ -145,13 +78,7 @@ st.set_page_config(
 
 
 
-
-
-
-
-
-
-# ======= Title =======
+# ======= Page =======
 st.title("ArcheoNet DEV DEMO VERSION")
 st.success(f"Logged in as {username}")
 
@@ -159,13 +86,11 @@ st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 st.divider()
 # ======= CREATE MAP MARKERS/POSTS =======
 
-map_post()
+if st.button("Make a post"):
+	st.switch_page("pages/map_post.py")
 
 if st.button("Testpage"):
 	st.switch_page("pages/test.py")
-
-
-
 
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
