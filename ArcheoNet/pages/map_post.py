@@ -43,6 +43,7 @@ try:
 					owner TEXT,
 					image BLOB,
 					timestamp TEXT,
+					type TEXT,
 					id TEXT PRIMARY KEY
 		)""")
 	conn.commit()
@@ -148,6 +149,7 @@ def map_post():
 	name = st.text_input("Name your find!", key="post_name")
 	description = st.text_area("Describe your find!", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	post_type = "Generic"	# ADD POST TYPES
 	latitude, longitude = get_geolocation()
 
 	uploaded_file = st.file_uploader("Take a picture!", type=["jpg", "jpeg", "png"])
@@ -197,9 +199,9 @@ def map_post():
 
 			else:
 				cursor.execute("""
-					INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, id)
+					INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id)
 					VALUES (?, ?, ?, ?, ?, ?, ?)
-				""", (latitude, longitude, name, description, username, image, timestamp, id))
+				""", (latitude, longitude, name, description, username, image, timestamp, post_type,id))
 				conn.commit()
 				st.success("Post created successfuly!")
 			
@@ -208,3 +210,6 @@ def map_post():
 	
 # ======= Page =======
 map_post()
+
+
+# Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
