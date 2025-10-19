@@ -13,8 +13,6 @@ import re
 
 
 
-
-
 # ===== SETUP =====
 st.set_page_config(
     page_title="ArcheoNet DEV VERSION (alpaha) Login",
@@ -43,6 +41,34 @@ except sqlite3.OperationalError:
 allowed_char = r"a-zA-Z0-9\-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
 pattern_char = rf"^[{allowed_char}]+$"
 
+# ======= Styles =======
+st.markdown("""
+<style>
+div.stButton > button {
+    width: 90vw;
+    margin: 10px auto;
+    display: block;
+    font-size: 1.2em;
+    padding: 1em 0.5em;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown(
+    """
+    <style>
+        div.block-container {
+            padding-top: 0rem;      /* Adjust to taste */
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ======= Functions =======
 def register_user(username, password):
     if username == None or password == None or username == "" or password == "":
         return "Please insert a value"
@@ -74,32 +100,6 @@ def verify_user(username, password):
         return "User not found or password incorrect"
 
 
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 90vw;
-    margin: 10px auto;
-    display: block;
-    font-size: 1.2em;
-    padding: 1em 0.5em;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown(
-    """
-    <style>
-        div.block-container {
-            padding-top: 0rem;      /* Adjust to taste */
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 ip = """
 async function getClientIP() {
   try {
@@ -114,13 +114,11 @@ getClientIP();
 """
 
 ip = streamlit_js_eval(js_expressions=ip)
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip}")
-
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip} - Login page")
 
 
 # ======= Title =======
 st.title("ArcheoNet DEV DEMO VERSION Login")
-
 
 # ======= Login =======
 def login_page():
@@ -162,26 +160,18 @@ def register_page():
 
 if st.session_state.option == "Register":
     register_page()
+    if st.button("Login"):
+        st.session_state.option = "Login"
+        st.rerun()
 
 elif st.session_state.option == "Login":
     login_page()
+    if st.button("Register"):
+        st.session_state.option = "Register"
+        st.rerun()
 
 else:
     st.caption("Please chose one of the options below:")
-
-
-
-if st.session_state.option == "Register":
-    if st.button("Login"):
-        st.session_state.option = "Login"
-        st.rerun()
-
-elif st.session_state.option == "Login":
-    if st.button("Register"):
-        st.session_state.option = "Register"
-        st.rerun()
-
-else:
     if st.button("Login"):
         st.session_state.option = "Login"
         st.rerun()
@@ -189,6 +179,9 @@ else:
     if st.button("Register"):
         st.session_state.option = "Register"
         st.rerun()
+
+
+
 
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

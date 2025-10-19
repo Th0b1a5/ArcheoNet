@@ -16,7 +16,7 @@ import time
 import socket
 import secrets
 
-# ======= Setun and scripts =======
+# ======= Setup and scripts =======
 st.set_page_config(
 	page_title="ArcheoNet DEV VERSION (alpaha)",
 	page_icon="📚",
@@ -49,6 +49,7 @@ try:
 except sqlite3.OperationalError:
 	print("Error in creating or accessing the database")
 
+# ======= Styles =======
 st.markdown("""
 <style>
 [data-testid="stFileUploader"] button {
@@ -91,6 +92,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# ======= Functions =======
 def generate_id(lat, lon, name, username):
 	try:
 		chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -147,7 +149,6 @@ def map_post():
 	description = st.text_area("Describe your find!", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	latitude, longitude = get_geolocation()
-	print(f"Position {latitude}, {longitude}")
 
 	uploaded_file = st.file_uploader("Take a picture!", type=["jpg", "jpeg", "png"])
 	if uploaded_file:
@@ -176,19 +177,24 @@ def map_post():
 	if st.button("Post", use_container_width=True):
 		if name == None or name == "":
 			st.warning("Fill in the name")
+
 		elif description == None or description == "":
 			st.warning("Fill in the description")
+
 		elif latitude == None or longitude == None:
 			pass
+
 		elif image == None or image == "":
 			st.warning("An image is required for a post")
+
 		elif timestamp == None or timestamp == "":
 			st.error("An error has occured: Timestamp generation error. Please refresh this page")
+
 		else:
 			id = generate_id(latitude, longitude, name, username) # Move to the end!
-			st.write(id)
 			if id == None or id == "":
 				st.error("An error has occured: ID generation error. Please try again later.")
+
 			else:
 				cursor.execute("""
 					INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, id)
@@ -201,5 +207,4 @@ def map_post():
 
 	
 # ======= Page =======
-
 map_post()

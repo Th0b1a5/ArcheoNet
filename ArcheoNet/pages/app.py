@@ -16,6 +16,13 @@ import socket
 import secrets
 
 # ===== SCRIPTS =====
+st.set_page_config(
+	page_title="ArcheoNet DEV VERSION (alpaha)",
+	page_icon="📚",
+	layout="wide",
+	initial_sidebar_state="collapsed"
+)
+
 try:
 	username = (st.session_state['userID'])
 except:
@@ -23,6 +30,7 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
+# ======= Styles =======
 st.markdown("""
 <style>
 [data-testid="stFileUploader"] button {
@@ -65,6 +73,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# ======= Functions =======
 ip = """
 async function getClientIP() {
   try {
@@ -79,16 +88,7 @@ getClientIP();
 """
 
 ip = streamlit_js_eval(js_expressions=ip)
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip}")
-
-st.set_page_config(
-	page_title="ArcheoNet DEV VERSION (alpaha)",
-	page_icon="📚",
-	layout="wide",
-	initial_sidebar_state="collapsed"
-)
-
-
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip} - App")
 
 
 # ======= Page =======
