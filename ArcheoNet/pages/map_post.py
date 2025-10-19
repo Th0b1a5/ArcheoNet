@@ -28,8 +28,7 @@ try:
 	username = (st.session_state['userID'])
 except:
 	st.switch_page("login.py")
-
-if st.session_state["userID"] == None:
+if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
    
@@ -39,10 +38,11 @@ try:
 	cursor.execute("""CREATE TABLE IF NOT EXISTS map_posts    (
 					latitude REAL,
 					longitude REAL,
-					owner TEXT,
-					timestamp TEXT,
+					name TEXT,
 					description TEXT,
+					owner TEXT,
 					image BLOB,
+					timestamp TEXT,
 					id TEXT PRIMARY KEY
 		)""")
 	conn.commit()
@@ -77,14 +77,31 @@ div.stButton > button {
 </style>
 """, unsafe_allow_html=True)
 
-def generate_id(lat, lon, name, username):
-	chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-	timestamp = datetime.now().strftime("%d.%m.%y..%H.%M.%S")
-	name = re.sub(r"[^a-zA-Z0-9]+", "", name)
-	username = re.sub(r"[^a-zA-Z0-9]+", "", username)
+st.markdown(
+    """
+    <style>
+        div.block-container {
+            padding-top: 0rem;      /* Adjust to taste */
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-	id = str(lat) + ":" + str(lon) + ":" + str(name) + ":" + str(username) + ":" + str(timestamp) + ":" + ''.join(secrets.choice(chars) for _ in range(6))
-	return id
+def generate_id(lat, lon, name, username):
+	try:
+		chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+		timestamp = datetime.now().strftime("%d.%m.%y..%H.%M.%S")
+		name = re.sub(r"[^a-zA-Z0-9]+", "", name)
+		username = re.sub(r"[^a-zA-Z0-9]+", "", username)
+
+		id = str(lat) + ":" + str(lon) + ":" + str(name) + ":" + str(username) + ":" + str(timestamp) + ":" + ''.join(secrets.choice(chars) for _ in range(6))
+		return id
+	except:
+		return None
 
 def get_geolocation():
 	getgeolocation = """
@@ -111,9 +128,12 @@ def get_geolocation():
 	try:
 		latitude = loc["latitude"]
 		longitude = loc["longitude"]
+		if latitude == 0 and longitude == 0:
+			latitude = None
+			longitude = None
 	except:
-		latitude = 0.00
-		longitude = 0.00
+		latitude = None
+		longitude = None
 		print("Location data is unavatible")
 
 	return latitude, longitude
@@ -127,6 +147,7 @@ def map_post():
 	description = st.text_area("Describe your find!", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	latitude, longitude = get_geolocation()
+	print(f"Position {latitude}, {longitude}")
 
 	uploaded_file = st.file_uploader("Take a picture!", type=["jpg", "jpeg", "png"])
 	if uploaded_file:
@@ -141,23 +162,42 @@ def map_post():
   
 	# ======= User location =======
 	st.header("Your location")
+	if latitude == None or latitude == "":
+		st.error("GPS is not enabled or unavatible. Please chaeck that you have enabled GPS in the perrmission settings on your phone.")
+	else:
 
-	user_pos = pd.DataFrame({
-		"latitude": [latitude],
-		"longitude": [longitude]
-	})
+		user_pos = pd.DataFrame({
+			"latitude": [latitude],
+			"longitude": [longitude]
+		})
 
-	st.map(user_pos)
+		st.map(user_pos, height=200)
 
 	if st.button("Post", use_container_width=True):
-		id = generate_id(latitude, longitude, name, username) # Move to the end!
-		st.write(id)
-		cursor.execute("""
-			INSERT INTO map_posts (latitude, longitude, owner, timestamp, description, image, id)
-			VALUES (?, ?, ?, ?, ?, ?, ?)
-		""", (latitude, longitude, username, timestamp, description, image, id))
-		conn.commit()
-
+		if name == None or name == "":
+			st.warning("Fill in the name")
+		elif description == None or description == "":
+			st.warning("Fill in the description")
+		elif latitude == None or longitude == None:
+			pass
+		elif image == None or image == "":
+			st.warning("An image is required for a post")
+		elif timestamp == None or timestamp == "":
+			st.error("An error has occured: Timestamp generation error. Please refresh this page")
+		else:
+			id = generate_id(latitude, longitude, name, username) # Move to the end!
+			st.write(id)
+			if id == None or id == "":
+				st.error("An error has occured: ID generation error. Please try again later.")
+			else:
+				cursor.execute("""
+					INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, id)
+					VALUES (?, ?, ?, ?, ?, ?, ?)
+				""", (latitude, longitude, name, description, username, image, timestamp, id))
+				conn.commit()
+				st.success("Post created successfuly!")
+			
+		
 
 	
 # ======= Page =======

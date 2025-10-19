@@ -86,6 +86,20 @@ div.stButton > button {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown(
+    """
+    <style>
+        div.block-container {
+            padding-top: 0rem;      /* Adjust to taste */
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 ip = """
 async function getClientIP() {
   try {
