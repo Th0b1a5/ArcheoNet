@@ -31,7 +31,6 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
-   
 conn = sqlite3.connect("map_posts.db")
 cursor = conn.cursor()
 try:
@@ -145,11 +144,13 @@ def get_geolocation():
 def map_post():
 	st.title("Create a map post")
 	# ======= Get data from user =======	
- 
 	name = st.text_input("Name your find!", key="post_name")
 	description = st.text_area("Describe your find!", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-	post_type = "Generic"	# ADD POST TYPES
+	post_type = st.selectbox(
+		"Select post type",
+		["Common", "Rare", "Epic", "Legendary", "Building", "Location", "Small object", "Medium object", "Large object"]
+     )	# ADD POST TYPES
 	latitude, longitude = get_geolocation()
 
 	uploaded_file = st.file_uploader("Take a picture!", type=["jpg", "jpeg", "png"])
@@ -176,9 +177,11 @@ def map_post():
 
 		st.map(user_pos, height=200)
 
+	# ======= Submit post handling =======
 	if st.button("Post", use_container_width=True):
 		if name == None or name == "":
 			st.warning("Fill in the name")
+			st.rerun()
 
 		elif description == None or description == "":
 			st.warning("Fill in the description")
@@ -204,8 +207,7 @@ def map_post():
 				""", (latitude, longitude, name, description, username, image, timestamp, post_type,id))
 				conn.commit()
 				st.success("Post created successfuly!")
-			
-		
+
 
 	
 # ======= Page =======
