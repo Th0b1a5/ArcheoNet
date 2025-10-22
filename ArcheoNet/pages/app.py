@@ -102,8 +102,14 @@ st.divider()
 if st.button("Make a post"):
 	st.switch_page("pages/map_post.py")
 
+if st.button("Map"):
+	st.switch_page("pages/map.py")
+	
 if st.button("Testpage"):
 	st.switch_page("pages/test.py")
+	
+if st.button("Test 2"):
+	st.switch_page("pages/slideup.py")
 
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

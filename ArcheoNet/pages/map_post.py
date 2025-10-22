@@ -153,14 +153,15 @@ def map_post():
      )	# ADD POST TYPES
 	latitude, longitude = get_geolocation()
 
-	uploaded_file = st.file_uploader("Take a picture!", type=["jpg", "jpeg", "png"])
+	uploaded_file = st.file_uploader("Take a picture!")
+	image = None
 	if uploaded_file:
 		image = Image.open(uploaded_file)
 		image = ImageOps.exif_transpose(image)  # Auto-rotate based on EXIF tag
 		st.image(image)
 		# Convert image to bytes
 		img_byte_arr = io.BytesIO()
-		image.save(img_byte_arr, format='PNG')  # or use uploaded_file.type.split('/')[-1].upper() for format
+		image.save(img_byte_arr, format='JPEG', quality=50)  # or use uploaded_file.type.split('/')[-1].upper() for format
 		image = img_byte_arr.getvalue()
 
   
@@ -190,6 +191,7 @@ def map_post():
 			pass
 
 		elif image == None or image == "":
+			print("Image required")
 			st.warning("An image is required for a post")
 
 		elif timestamp == None or timestamp == "":
@@ -197,13 +199,14 @@ def map_post():
 
 		else:
 			id = generate_id(latitude, longitude, name, username) # Move to the end!
+			
 			if id == None or id == "":
 				st.error("An error has occured: ID generation error. Please try again later.")
 
 			else:
 				cursor.execute("""
 					INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id)
-					VALUES (?, ?, ?, ?, ?, ?, ?)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 				""", (latitude, longitude, name, description, username, image, timestamp, post_type,id))
 				conn.commit()
 				st.success("Post created successfuly!")
