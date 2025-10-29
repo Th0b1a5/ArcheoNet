@@ -109,6 +109,9 @@ if st.button("Testpage"):
 	st.switch_page("pages/test.py")
 	
 if st.button("Test 2"):
+	st.switch_page("pages/test2.py")
+	
+if st.button("Slideup"):
 	st.switch_page("pages/slideup.py")
 
 

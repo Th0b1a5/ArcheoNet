@@ -1,33 +1,41 @@
 import streamlit as st
-from streamlit.components.v1 import html
+from streamlit_js_eval import streamlit_js_eval
+import pydeck as pdk
 
-st.set_page_config(layout="wide")
+# Get viewport height asynchronously
+height = streamlit_js_eval(js_expressions='window.innerHeight', key='height', want_output=True)
 
-html_code = """
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    html, body, #map {{
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      width: 100vw;
-    }}
-  </style>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    var map = L.map('map').setView([37.7749, -122.4194], 11);
-    L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-      maxZoom: 19,
-    }}).addTo(map);
-  </script>
-</body>
-</html>
-"""
+if height is None:
+    st.write("Loading map size...")
+else:
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=[{"position": [-122.4194, 37.7749]}],
+        get_position="position",
+        get_color=[255, 0, 0],
+        get_radius=10000,
+    )
+    view_state = pdk.ViewState(longitude=-122.4194, latitude=37.7749, zoom=10)
 
-html(html_code, height=800, width=1200)  # Adjust width/height - try big values or window-resize trick
+    r = pdk.Deck(
+        layers=[layer],
+        initial_view_state=view_state,
+        map_style="mapbox://styles/mapbox/streets-v11",
+    )
+
+    st.pydeck_chart(r, height=int(height))
+
+# Minimal CSS to keep page scroll enabled
+st.markdown(
+    """
+    <style>
+        body, html, #root, .block-container {
+            overflow-y: auto !important;
+            height: auto !important;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
