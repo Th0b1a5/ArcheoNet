@@ -11,7 +11,9 @@ import time
 import socket
 import re
 
-
+import modules.get_ip as get_ip
+import modules.location as location
+import modules.styles as styles
 
 # ===== SETUP =====
 st.set_page_config(
@@ -27,7 +29,7 @@ if "option" not in st.session_state:
 if "userID" not in st.session_state:
     st.session_state['userID'] = None
 
-conn = sqlite3.connect("users.db")
+conn = sqlite3.connect(r"database\users.db")
 cursor = conn.cursor()
 try:
     cursor.execute("""CREATE TABLE users    (
@@ -41,32 +43,12 @@ except sqlite3.OperationalError:
 allowed_char = r"a-zA-Z0-9\-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
 pattern_char = rf"^[{allowed_char}]+$"
 
-# ======= Styles =======
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 90vw;
-    margin: 10px auto;
-    display: block;
-    font-size: 1.2em;
-    padding: 1em 0.5em;
-}
-</style>
-""", unsafe_allow_html=True)
 
-st.markdown(
-    """
-    <style>
-        div.block-container {
-            padding-top: 0rem;      /* Adjust to taste */
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - Login")
+
+
+# ======= Styles =======
+styles.apply()
 
 # ======= Functions =======
 def register_user(username, password):
@@ -98,23 +80,6 @@ def verify_user(username, password):
         return True
     else:
         return "User not found or password incorrect"
-
-
-ip = """
-async function getClientIP() {
-  try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const data = await response.json();
-    return data.ip;
-  } catch (error) {
-    return 'IP not available';
-  }
-}
-getClientIP();
-"""
-
-ip = streamlit_js_eval(js_expressions=ip)
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip} - Login page")
 
 
 # ======= Title =======

@@ -1,41 +1,47 @@
 import streamlit as st
-from streamlit_js_eval import streamlit_js_eval
 import pydeck as pdk
+import pandas as pd
 
-# Get viewport height asynchronously
-height = streamlit_js_eval(js_expressions='window.innerHeight', key='height', want_output=True)
+# Example data: list of places with lat, lon, and info
+data = [
+    {"name": "Place A", "lat": 40.7128, "lon": -74.0060, "info": "Info about Place A"},
+    {"name": "Place B", "lat": 34.0522, "lon": -118.2437, "info": "Info about Place B"},
+    {"name": "Place C", "lat": 37.7749, "lon": -122.4194, "info": "Info about Place C"},
+]
 
-if height is None:
-    st.write("Loading map size...")
-else:
-    layer = pdk.Layer(
-        "ScatterplotLayer",
-        data=[{"position": [-122.4194, 37.7749]}],
-        get_position="position",
-        get_color=[255, 0, 0],
-        get_radius=10000,
-    )
-    view_state = pdk.ViewState(longitude=-122.4194, latitude=37.7749, zoom=10)
+df = pd.DataFrame(data)
 
-    r = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/streets-v11",
-    )
-
-    st.pydeck_chart(r, height=int(height))
-
-# Minimal CSS to keep page scroll enabled
-st.markdown(
-    """
-    <style>
-        body, html, #root, .block-container {
-            overflow-y: auto !important;
-            height: auto !important;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
+# Define a layer to show scatterplot (markers)
+layer = pdk.Layer(
+    "ScatterplotLayer",
+    df,
+    get_position='[lon, lat]',
+    get_fill_color='[200, 30, 0, 160]',
+    get_radius=30000,
+    pickable=True,  # Enable picking (click detection)
 )
+
+# Set the view state (center and zoom)
+view_state = pdk.ViewState(
+    latitude=df['lat'].mean(),
+    longitude=df['lon'].mean(),
+    zoom=4,
+    pitch=0,
+)
+
+# Create the deck.gl map
+r = pdk.Deck(
+    layers=[layer],
+    initial_view_state=view_state,
+    tooltip={"text": "{name}\n{info}"},
+)
+
+# Render the map in Streamlit
+selected = st.pydeck_chart(r)
+
+# selected contains info about clicked object (if any)
+if selected is not None and "picked_object" in selected:
+    picked = selected["picked_object"]
+    if picked is not None:
+        st.write(f"You clicked on {picked['name']}")
+        st.write(picked['info'])

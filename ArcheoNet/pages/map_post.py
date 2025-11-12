@@ -31,7 +31,7 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
-conn = sqlite3.connect("map_posts.db")
+conn = sqlite3.connect(r"database\map_posts.db")
 cursor = conn.cursor()
 try:
 	cursor.execute("""CREATE TABLE IF NOT EXISTS map_posts    (

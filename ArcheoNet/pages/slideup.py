@@ -13,6 +13,7 @@ try:
 	username = (st.session_state['userID'])
 except:
 	st.switch_page("login.py")
+	
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 	

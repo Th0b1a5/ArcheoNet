@@ -15,6 +15,10 @@ import time
 import socket
 import secrets
 
+import modules.get_ip as get_ip
+import modules.location as location
+import modules.styles as styles
+
 # ===== SCRIPTS =====
 st.set_page_config(
 	page_title="ArcheoNet DEV VERSION (alpaha)",
@@ -26,70 +30,13 @@ st.set_page_config(
 try:
 	username = (st.session_state['userID'])
 except:
-	st.switch_page("login.py")
+	st.switch_page(r"database\login.py")
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
-# ======= Styles =======
-st.markdown("""
-<style>
-[data-testid="stFileUploader"] button {
-    padding: 0.4em 2em;
-    border-radius: 0.5em;
-    background-color: #0099ff;
-    color: white;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-}
-</style>
-""", unsafe_allow_html=True)
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - App")
 
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 90vw;
-    margin: 10px auto;
-    display: block;
-    font-size: 1.2em;
-    padding: 1em 0.5em;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown(
-    """
-    <style>
-        div.block-container {
-            padding-top: 0rem;      /* Adjust to taste */
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# ======= Functions =======
-ip = """
-async function getClientIP() {
-  try {
-	const response = await fetch('https://api.ipify.org?format=json');
-	const data = await response.json();
-	return data.ip;
-  } catch (error) {
-	return 'IP not available';
-  }
-}
-getClientIP();
-"""
-
-ip = streamlit_js_eval(js_expressions=ip)
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {ip} - App")
-
+styles.apply()
 
 # ======= Page =======
 st.title("ArcheoNet DEV DEMO VERSION")
@@ -97,22 +44,11 @@ st.success(f"Logged in as {username}")
 
 st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 st.divider()
-# ======= CREATE MAP MARKERS/POSTS =======
 
-if st.button("Make a post"):
-	st.switch_page("pages/map_post.py")
+# ======= NAVIGATION BUTTONS =======
 
-if st.button("Map"):
-	st.switch_page("pages/map.py")
-	
-if st.button("Testpage"):
-	st.switch_page("pages/test.py")
-	
-if st.button("Test 2"):
-	st.switch_page("pages/test2.py")
-	
-if st.button("Slideup"):
-	st.switch_page("pages/slideup.py")
+if st.button("Actions"):
+	st.switch_page("pages/pages.py")
 
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

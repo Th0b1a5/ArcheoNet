@@ -15,6 +15,7 @@ import re
 import time
 import socket
 import secrets
+import modules.location as location
 
 # ======= Setup and scripts =======
 st.set_page_config(
@@ -93,42 +94,10 @@ st.markdown(
 )
 
 # ======= Functions =======
-def get_geolocation():
-	getgeolocation = """
-	new Promise((resolve, reject) => {
-	  navigator.geolocation.getCurrentPosition(
-		pos => resolve({
-		  latitude: pos.coords.latitude,
-		  longitude: pos.coords.longitude,
-		  accuracy: pos.coords.accuracy,
-		  error: null
-		}),
-		err => resolve({
-		  latitude: 0.00,
-		  longitude: 0.00,
-		  accuracy: 0.00,
-		  error: err.message
-		})
-	  );
-	});
-	"""
 
-	loc = (streamlit_js_eval(js_expressions=getgeolocation))
-
-	try:
-		latitude = loc["latitude"]
-		longitude = loc["longitude"]
-		if latitude == 0 and longitude == 0:
-			latitude = None
-			longitude = None
-	except:
-		latitude = None
-		longitude = None
-		print("Location data is unavatible")
-
-	return latitude, longitude
 
 
 st.map()
 
 
+st.write(location.get_geolocation)
