@@ -34,3 +34,6 @@ if st.button("Slideup"):
 
 if st.button("Back"):
 	st.switch_page("pages/app.py")
+
+if st.button("fetchdb"):
+	st.switch_page("pages/fetchdb.py")

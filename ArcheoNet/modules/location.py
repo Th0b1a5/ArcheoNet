@@ -1,4 +1,4 @@
-import streamlit_js_eval
+from streamlit_js_eval import streamlit_js_eval
 
 
 def get_geolocation():
@@ -27,11 +27,11 @@ def get_geolocation():
 		latitude = loc["latitude"]
 		longitude = loc["longitude"]
 		if latitude == 0 and longitude == 0:
-			latitude = None
-			longitude = None
+			latitude = 0.0
+			longitude = 0.0
 	except:
-		latitude = None
-		longitude = None
+		latitude = 0.0
+		longitude = 0.0
 		print("Location data is unavatible")
 
 	return latitude, longitude
