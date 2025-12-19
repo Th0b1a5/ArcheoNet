@@ -1,57 +1,83 @@
 import streamlit as st
-import folium
-from streamlit_folium import st_folium
+from streamlit_geolocation import streamlit_geolocation
+from streamlit_js_eval import streamlit_js_eval, copy_to_clipboard, create_share_link
+import pandas as pd
+import numpy as np
+from streamlit.runtime import get_instance
 from datetime import datetime
+import pydeck as pdk
+import sqlite3
+import base64
+from io import BytesIO
+from PIL import Image, ImageOps
+import io
+import re
+import time
+import socket
+import secrets
 
+import modules.get_ip as get_ip
 import modules.location as location
+import modules.styles as styles
+
 
 try:
 	username = (st.session_state['userID'])
 except:
-	st.switch_page(r"database\login.py")
+	st.switch_page("login.py")
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
-	
-if "last_object" not in st.session_state:
-    st.session_state['last_object'] = None
+ 
+st.set_page_config(
+    page_title="ArcheoNet DEV VERSION (alpaha) Login",
+    page_icon="📚",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-user_lat, user_lon = location.get_geolocation()
-st.write(user_lat, user_lon)
+styles.apply()
 
-# Sample marker data
-locations = [
-    {"name": "You", "lat": user_lat, "lon": user_lon, "info": "user", "tag": "user"}
-]
+if 'lenght' not in st.session_state:
+    st.session_state.lenght = 5
 
-# Initialize the map at the average location
-m = folium.Map(location=[user_lat, user_lon], zoom_start=4)
+# ======= Database stuff =======
+conn = sqlite3.connect('database/map_posts.db')
+# Return in dictionary format
+conn.row_factory = sqlite3.Row
 
-# Add markers with popups
-for loc in locations:
-    folium.Marker(
-        [loc["lat"], loc["lon"]],
-        tooltip=loc["name"],
-        popup=loc["info"]
-    ).add_to(m)
+cursor = conn.cursor()
 
-# Display map in Streamlit and capture clicks
-map_data = st_folium(m, width=700, height=450)
+def filters():
+    lat_values = st.slider("Latitude:", 50.0878114, 50.0978114,(50.0878114, 50.0978114), step=0.00001, format="%.7f")
+    st.write(lat_values)
 
-# Check if user clicked somewhere on the map
-if map_data and map_data.get("last_object_clicked"):
-    print(map_data.get("last_object_clicked")["tag"])
-    if map_data.get("last_object_clicked")["tag"] == "user":
-        print("Clicked on user")
+def fetch_db():
+    cursor.execute(f"SELECT * FROM map_posts ORDER BY timestamp DESC LIMIT {st.session_state.lenght}")
+    posts = cursor.fetchall()
+    
+    if not posts:
+        st.write("No posts found in the database.")
+        return
+    
+    for post in posts:
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.write(f"Name: {post['name']}")
+            st.write(f"Description: {post['description']}")
+            st.write(f"Location: ({post['latitude']}, {post['longitude']})")
+            st.write(f"Owner: {post['owner']}")
+            st.write(f"Timestamp: {post['timestamp']}")
+            st.write(f"ID: {post['id']}")
+            st.write("--------------")
+        with col2:
+            image = post['image']
+            st.image(image, width=400)
 
-    else:
-        clicked_lat = map_data["last_object_clicked"]["lat"]
-        clicked_lon = map_data["last_object_clicked"]["lng"]
-        
-        object_name = map_data["last_object_clicked_tooltip"]
+    if st.button("Fetch more"):
+        st.session_state.lenght = st.session_state.lenght + 1
+        st.rerun()
+    
 
-        if object_name != st.session_state['last_object']:
-            st.session_state['last_object'] = object_name
-            print(f"{datetime.now():%Y-%m-%d %H:%M:%S} on {object_name} at Lat: {clicked_lat}, Lon: {clicked_lon}")
-            
-        else:
-            pass
+filters()
+
+fetch_db()

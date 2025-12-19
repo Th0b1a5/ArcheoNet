@@ -37,3 +37,6 @@ if st.button("Back"):
 
 if st.button("fetchdb"):
 	st.switch_page("pages/fetchdb.py")
+ 
+if st.button("Map tests"):
+	st.switch_page("pages/map_tests.py")

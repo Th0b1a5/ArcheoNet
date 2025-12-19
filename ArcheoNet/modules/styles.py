@@ -42,5 +42,3 @@ def apply():
             """,
             unsafe_allow_html=True
     )
-
-    print("Styles applied")

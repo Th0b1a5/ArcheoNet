@@ -16,6 +16,10 @@ import time
 import socket
 import secrets
 
+import modules.get_ip as get_ip
+import modules.location as location
+import modules.styles as styles
+
 # ======= Setup and scripts =======
 st.set_page_config(
 	page_title="ArcheoNet DEV VERSION (alpaha)",
@@ -50,47 +54,7 @@ except sqlite3.OperationalError:
 	print("Error in creating or accessing the database")
 
 # ======= Styles =======
-st.markdown("""
-<style>
-[data-testid="stFileUploader"] button {
-    padding: 0.4em 2em;
-    border-radius: 0.5em;
-    background-color: #0099ff;
-    color: white;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 87vw;
-    margin: 10px auto;
-    display: block;
-    font-size: 1.2em;
-    padding: 1em 0.5em;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown(
-    """
-    <style>
-        div.block-container {
-            padding-top: 0rem;      /* Adjust to taste */
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+styles.apply()
 
 # ======= Functions =======
 def generate_id(lat, lon, name, username):
@@ -149,7 +113,7 @@ def map_post():
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	post_type = st.selectbox(
 		"Select post type",
-		["Common", "Rare", "Epic", "Legendary", "Building", "Location", "Small object", "Medium object", "Large object"]
+		["Underground ", "Building", "Location", "Small object", "Medium object", "Large object"]
      )	# ADD POST TYPES
 	latitude, longitude = get_geolocation()
 
