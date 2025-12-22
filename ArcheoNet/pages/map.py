@@ -1,29 +1,26 @@
 import streamlit as st
 from streamlit_geolocation import streamlit_geolocation
-from streamlit_js_eval import streamlit_js_eval, copy_to_clipboard, create_share_link
+from streamlit_js_eval import streamlit_js_eval, copy_to_clipboard, create_share_link, get_geolocation
 import pandas as pd
 import numpy as np
 from streamlit.runtime import get_instance
 from datetime import datetime
+from pathlib import Path
 import pydeck as pdk
 import sqlite3
-import base64
-from io import BytesIO
-from PIL import Image, ImageOps
-import io
-import re
 import time
 import socket
 import secrets
-import modules.location as location
+import re
+import folium
+from streamlit_folium import st_folium
+from PIL import Image, ImageOps
+import io
 
-# ======= Setup and scripts =======
-st.set_page_config(
-	page_title="ArcheoNet DEV VERSION (alpaha)",
-	page_icon="📚",
-	layout="wide",
-	initial_sidebar_state="collapsed"
-)
+import modules.get_ip as get_ip
+import modules.location as location
+import modules.styles as styles
+
 
 try:
 	username = (st.session_state['userID'])
@@ -31,73 +28,65 @@ except:
 	st.switch_page("login.py")
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
+	
+if "last_object" not in st.session_state:
+    st.session_state['last_object'] = None
 
-conn = sqlite3.connect("map_posts.db")
-cursor = conn.cursor()
-try:
-	cursor.execute("""CREATE TABLE IF NOT EXISTS map_posts    (
-					latitude REAL,
-					longitude REAL,
-					name TEXT,
-					description TEXT,
-					owner TEXT,
-					image BLOB,
-					timestamp TEXT,
-					type TEXT,
-					id TEXT PRIMARY KEY
-		)""")
-	conn.commit()
-except sqlite3.OperationalError:
-	print("Error in creating or accessing the database")
+if "locations" not in st.session_state:
+    st.session_state['locations'] = []
 
-# ======= Styles =======
-st.markdown("""
-<style>
-[data-testid="stFileUploader"] button {
-    padding: 0.4em 2em;
-    border-radius: 0.5em;
-    background-color: #0099ff;
-    color: white;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-}
-</style>
-""", unsafe_allow_html=True)
+user_lat, user_lon = location.get_geolocation()
+st.write(user_lat, user_lon)
 
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 87vw;
-    margin: 10px auto;
-    display: block;
-    font-size: 1.2em;
-    padding: 1em 0.5em;
-}
-</style>
-""", unsafe_allow_html=True)
+if st.session_state.page != "map":
+    print("Fetching db...")
+    conn = sqlite3.connect('database/map_posts.db')
+    # Return in dictionary format
+    conn.row_factory = sqlite3.Row
 
-st.markdown(
-    """
-    <style>
-        div.block-container {
-            padding-top: 0rem;      /* Adjust to taste */
-            padding-bottom: 0rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+    cursor = conn.cursor()
 
-# ======= Functions =======
+    cursor.execute(f"SELECT id, latitude, longitude, name, description, type FROM map_posts ORDER BY timestamp DESC")
+    posts = cursor.fetchall()
+
+    st.session_state.locations = []
+    for post in posts:
+        st.session_state.locations.append({
+            "name": post["name"],
+            "lat": post["latitude"],
+            "lon": post["longitude"],
+            "info": post["description"],
+            "tag": post["id"]
+        })
+
+st.session_state.page = Path(__file__).name.replace('.py', '')
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
+
+# Sample marker data
+#locations = [
+#    {"name": "You", "lat": user_lat, "lon": user_lon, "info": "user", "tag": "user"}
+#]
+
+# Initialize the map at the average location
+m = folium.Map(location=[user_lat, user_lon], zoom_start=4)
+
+# Add markers with popups
+for loc in st.session_state.locations:
+    folium.Marker(
+        [loc["lat"], loc["lon"]],
+        tooltip=loc["info"],
+        popup=loc["name"]
+    ).add_to(m)
+
+# Display map in Streamlit and capture clicks
+map_data = st_folium(m, width=700, height=450)
+
+# Check if user clicked somewhere on the map
+if map_data:
+    for map_item in map_data:
+        print(map_item)
+        print(map_data.get(map_item))
+        print("-----")
+        
 
 
-
-st.map()
-
-
-st.write(location.get_geolocation)

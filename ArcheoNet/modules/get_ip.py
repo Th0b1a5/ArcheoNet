@@ -14,4 +14,4 @@ def pull_ip():
     getClientIP();
     """
 
-    return(streamlit_js_eval(js_expressions=ip))
+    return(streamlit_js_eval(js_expressions=ip, key="pull_ip473987"))

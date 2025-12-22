@@ -5,11 +5,17 @@ import pandas as pd
 import numpy as np
 from streamlit.runtime import get_instance
 from datetime import datetime
+from pathlib import Path
 import pydeck as pdk
 import sqlite3
 import time
 import socket
+import secrets
 import re
+import folium
+from streamlit_folium import st_folium
+from PIL import Image, ImageOps
+import io
 
 import modules.get_ip as get_ip
 import modules.location as location
@@ -22,6 +28,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+st.session_state.page = Path(__file__).name.replace('.py', '')
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
+
 
 if "option" not in st.session_state:
     st.session_state.option = None
@@ -42,10 +52,6 @@ except sqlite3.OperationalError:
 
 allowed_char = r"a-zA-Z0-9\-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
 pattern_char = rf"^[{allowed_char}]+$"
-
-
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - Login")
-
 
 # ======= Styles =======
 styles.apply()
