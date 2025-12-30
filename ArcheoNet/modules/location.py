@@ -30,8 +30,8 @@ def get_geolocation():
 			latitude = 0.0
 			longitude = 0.0
 	except:
-		latitude = 0.0
-		longitude = 0.0
+		latitude = None
+		longitude = None
 		print("Location data is unavatible")
 
 	return latitude, longitude

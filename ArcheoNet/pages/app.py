@@ -47,7 +47,7 @@ styles.apply()
 
 # ======= Page =======
 st.title("ArcheoNet DEV DEMO VERSION")
-st.success(f"Logged in as {username}")
+st.toast(f"Logged in as {username}", icon="😍")
 
 st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 st.divider()
@@ -56,6 +56,10 @@ st.divider()
 
 if st.button("Actions"):
 	st.switch_page("pages/pages.py")
+ 
+if st.button("Logout"):
+    st.session_state["userID"] = None
+    st.rerun()
 
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

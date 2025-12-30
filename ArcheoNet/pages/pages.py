@@ -24,6 +24,13 @@ import modules.styles as styles
 st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 
+try:
+	username = (st.session_state['userID'])
+except:
+	st.switch_page("login.py")
+if st.session_state["userID"] == None or st.session_state["userID"] == "":
+	st.switch_page("login.py")
+
 # ===== SETUP =====
 st.set_page_config(
     page_title="ArcheoNet DEV VERSION (alpaha) Login",
@@ -57,6 +64,10 @@ if st.button("fetchdb"):
  
 if st.button("Map tests"):
 	st.switch_page("pages/map_tests.py")
+ 
+if st.button("Imovable button"):
+	st.switch_page("pages/floating_button.py")
 
 if st.button("Back"):
 	st.switch_page("pages/app.py")
+

@@ -58,16 +58,11 @@ conn.row_factory = sqlite3.Row
 cursor = conn.cursor()
 
 def fetch_db():
-    # FILTERS
-    lat_values = st.slider("Latitude:", 498295972, 498375733, (498295972, 498375733), step=1, format="%.1f")
-    lat_min = 0.0000001 * lat_values[0]
-    lat_max = 0.0000001 * lat_values[1]
-    st.write(lat_min, lat_max)
+
 
     # DB and displaying posts
-    cursor.execute(f"SELECT * FROM map_posts WHERE latitude BETWEEN ? AND ? ORDER BY timestamp DESC LIMIT {st.session_state.lenght}", (lat_min, lat_max))
+    cursor.execute(f"SELECT * FROM map_posts WHERE latitude ORDER BY timestamp DESC LIMIT {st.session_state.lenght}")
     posts = cursor.fetchall()
-    print(posts)
     if not posts:
         st.write("No posts found in the database.")
         return

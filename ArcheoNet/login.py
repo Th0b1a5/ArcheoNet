@@ -89,11 +89,11 @@ def verify_user(username, password):
 
 
 # ======= Title =======
-st.title("ArcheoNet DEV DEMO VERSION Login")
+#st.title("ArcheoNet DEV DEMO VERSION Login")
 
 # ======= Login =======
 def login_page():
-    st.caption("Login")
+    st.title("Login")
 
     with st.form(key="login"):
         username = st.text_input("Username")
@@ -112,7 +112,7 @@ def login_page():
                 st.error(result)
 
 def register_page():
-    st.caption("Register")
+    st.title("Register")
 
     with st.form(key="register"):
         reg_username = st.text_input("Enter username")
@@ -142,6 +142,7 @@ elif st.session_state.option == "Login":
         st.rerun()
 
 else:
+    st.title("ArcheoNet")
     st.caption("Please chose one of the options below:")
     if st.button("Login"):
         st.session_state.option = "Login"
@@ -150,7 +151,6 @@ else:
     if st.button("Register"):
         st.session_state.option = "Register"
         st.rerun()
-
 
 
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite

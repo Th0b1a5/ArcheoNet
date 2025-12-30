@@ -27,9 +27,6 @@ st.set_page_config(
 	initial_sidebar_state="collapsed"
 )
 
-st.session_state.page = Path(__file__).name.replace('.py', '')
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
-
 try:
 	username = (st.session_state['userID'])
 except:
@@ -37,6 +34,19 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
+try:
+	if st.session_state["last_state"] == None or st.session_state["last_state"] == "":
+		st.session_state["last_state"] = ""
+except:
+    st.session_state["last_state"] = ""
+
+if st.session_state.page != "map_post":
+	st.session_state["last_state"] = ""
+
+st.session_state.page = Path(__file__).name.replace('.py', '')
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
+
+# ======= Database setup =======
 conn = sqlite3.connect(r"database\map_posts.db")
 cursor = conn.cursor()
 try:
@@ -102,22 +112,20 @@ def get_geolocation():
 	except:
 		latitude = None
 		longitude = None
-		print("Location data is unavatible")
 
 	return latitude, longitude
 
 
 def map_post():
-	st.title("Create a map post")
 	# ======= Get data from user =======	
 	name = st.text_input("Name your find!", key="post_name")
 	description = st.text_area("Describe your find!", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	post_type = st.selectbox(
 		"Select post type",
-		["Underground ", "Building", "Location", "Small object", "Medium object", "Large object"]
+		["Underground", "Building", "Location", "Small object", "Medium object", "Large object"]
      )	# ADD POST TYPES
-	latitude, longitude = get_geolocation()
+	
 
 	uploaded_file = st.file_uploader("Take a picture!")
 	image = None
@@ -132,54 +140,75 @@ def map_post():
 
   
 	# ======= User location =======
-	st.header("Your location")
-	if latitude == None or latitude == "":
-		st.error("GPS is not enabled or unavatible. Please chaeck that you have enabled GPS in the perrmission settings on your phone.")
+	if st.toggle("Share location", True):
+		latitude, longitude = get_geolocation()
+		st.header("Your location")
+		if latitude == None or latitude == "":
+			st.error("GPS is not enabled or unavatible. Please chaeck that you have enabled GPS in the perrmission settings on your phone.")
+		else:
+
+			user_pos = pd.DataFrame({
+				"latitude": [latitude],
+				"longitude": [longitude]
+			})
+
+			st.map(user_pos, height=200)
 	else:
-
-		user_pos = pd.DataFrame({
-			"latitude": [latitude],
-			"longitude": [longitude]
-		})
-
-		st.map(user_pos, height=200)
+		latitude, longitude = None, None
 
 	# ======= Submit post handling =======
 	if st.button("Post", use_container_width=True):
 		if name == None or name == "":
-			st.warning("Fill in the name")
+			st.session_state["last_state"] = "Fill in the name"
 			st.rerun()
 
 		elif description == None or description == "":
-			st.warning("Fill in the description")
+			st.session_state["last_state"] = "Fill in the description"
+			st.rerun()	
 
 		elif latitude == None or longitude == None:
 			pass
 
 		elif image == None or image == "":
-			print("Image required")
-			st.warning("An image is required for a post")
+			st.session_state["last_state"] = "An image is required for a post"		
+			st.rerun()
 
 		elif timestamp == None or timestamp == "":
-			st.error("An error has occured: Timestamp generation error. Please refresh this page")
+			st.session_state["last_state"] = "An error has occured: Timestamp generation error."
+			st.error("An error has occured: Timestamp generation error.")
+			st.rerun()
 
 		else:
 			id = generate_id(latitude, longitude, name, username) # Move to the end!
 			
 			if id == None or id == "":
+				st.session_state["last_state"] = "ID generation error. Please try again later."
 				st.error("An error has occured: ID generation error. Please try again later.")
 
 			else:
-				cursor.execute("""
-					INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id)
-					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-				""", (latitude, longitude, name, description, username, image, timestamp, post_type,id))
-				conn.commit()
-				st.success("Post created successfuly!")
+				try:
+					cursor.execute("""
+						INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+					""", (latitude, longitude, name, description, username, image, timestamp, post_type,id))
+					conn.commit()
+					st.switch_page("pages/post_success.py")
+     
+				except sqlite3.IntegrityError:
+					st.session_state["last_state"] = "An error has occured: Duplicate ID. Please try again later."	
+					st.error("An error has occured: Duplicate ID. Please try again later.")
+					st.rerun()		
 
-
+def display_warnings(warning):
+	if warning != None and warning != "":
+		st.warning(warning)
+		st.toast(warning, icon="⚠️")
+		st.session_state["last_state"] = None
 	
 # ======= Page =======
+st.title("Create a map post")
+
+display_warnings(st.session_state["last_state"])
 map_post()
 
 
