@@ -24,6 +24,12 @@ import modules.styles as styles
 st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 
+try:
+	userID = (st.session_state['userID'])
+	username = (st.session_state['username'])
+except:
+	st.switch_page(r"login.py")
+
 # Make wide layout
 st.set_page_config(layout="wide")
 

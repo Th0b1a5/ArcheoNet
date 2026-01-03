@@ -23,9 +23,10 @@ import modules.styles as styles
 
 # =======INITALIZE SESSION STATE VARIABLES AND OTHER =======
 try:
-	username = (st.session_state['userID'])
+	userID = (st.session_state['userID'])
+	username = (st.session_state['username'])
 except:
-	st.switch_page("login.py")
+	st.switch_page(r"login.py")
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 	
@@ -240,7 +241,7 @@ m = add_user_marker(m, user_lat, user_lon)
 # Add markers with popups
 for loc in st.session_state.locations:
     
-    if loc["owner"] == st.session_state["userID"]:
+    if loc["owner"] == st.session_state["username"]:
         color = "orange"
     else:
         color = "blue"

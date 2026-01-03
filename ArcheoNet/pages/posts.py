@@ -21,6 +21,12 @@ import modules.get_ip as get_ip
 import modules.location as location
 import modules.styles as styles
 
+try:
+	userID = (st.session_state['userID'])
+	username = (st.session_state['username'])
+except:
+	st.switch_page(r"login.py")
+
 st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 

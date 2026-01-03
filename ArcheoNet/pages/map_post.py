@@ -28,9 +28,10 @@ st.set_page_config(
 )
 
 try:
-	username = (st.session_state['userID'])
+	userID = (st.session_state['userID'])
+	username = (st.session_state['username'])
 except:
-	st.switch_page("login.py")
+	st.switch_page(r"login.py")
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
@@ -175,11 +176,10 @@ def map_post():
 
 		elif timestamp == None or timestamp == "":
 			st.session_state["last_state"] = "An error has occured: Timestamp generation error."
-			st.error("An error has occured: Timestamp generation error.")
 			st.rerun()
 
 		else:
-			id = generate_id(latitude, longitude, name, username) # Move to the end!
+			id = generate_id(latitude, longitude, name, userID) # Move to the end!
 			
 			if id == None or id == "":
 				st.session_state["last_state"] = "ID generation error. Please try again later."

@@ -39,6 +39,9 @@ if "option" not in st.session_state:
 if "userID" not in st.session_state:
     st.session_state['userID'] = None
 
+if "username" not in st.session_state:
+    st.session_state['username'] = None
+
 conn = sqlite3.connect(r"database\users.db")
 cursor = conn.cursor()
 try:
@@ -104,7 +107,8 @@ def login_page():
             result = verify_user(username, password)
 
             if result == True:
-                st.session_state['userID'] = username
+                st.session_state["userID"] = username
+                st.session_state["username"] = username
                 st.success(result)
                 st.switch_page("pages/app.py")
 
@@ -128,6 +132,16 @@ def register_page():
             else:
                 st.error(result)
 
+def verify_google():
+    user_data = st.experimental_user
+    if user_data["is_logged_in"] == False:
+        pass
+    elif user_data["is_logged_in"] == True:
+        st.session_state['userID'] = user_data["sub"]
+        st.session_state['username'] = user_data["name"]
+        st.switch_page("pages/app.py")
+
+verify_google()
 
 if st.session_state.option == "Register":
     register_page()
@@ -152,7 +166,10 @@ else:
         st.session_state.option = "Register"
         st.rerun()
 
+if st.button("Log in with google"):
+    st.login("google")
 
+verify_google()
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

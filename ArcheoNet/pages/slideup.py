@@ -35,10 +35,10 @@ st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 
 try:
-	username = (st.session_state['userID'])
+	userID = (st.session_state['userID'])
+	username = (st.session_state['username'])
 except:
-	st.switch_page("login.py")
-	
+	st.switch_page(r"login.py")
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 	

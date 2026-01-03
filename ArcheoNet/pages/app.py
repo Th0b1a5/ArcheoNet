@@ -36,13 +36,14 @@ st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 
 try:
-	username = (st.session_state['userID'])
+	userID = (st.session_state['userID'])
+	username = (st.session_state['username'])
 except:
 	st.switch_page(r"login.py")
 
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
-	
+
 styles.apply()
 
 # ======= Page =======
@@ -56,10 +57,13 @@ st.divider()
 
 if st.button("Actions"):
 	st.switch_page("pages/pages.py")
- 
+
 if st.button("Logout"):
-    st.session_state["userID"] = None
-    st.rerun()
+	st.logout()
+	st.session_state["userID"] = None
+	st.rerun()
+
+st.json(st.experimental_user)
 
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
