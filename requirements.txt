@@ -1,1 +1,10 @@
+streamlit==1.52.2
+streamlit-folium==0.25.3
+streamlit-geolocation==0.0.10
+streamlit-js-eval
+folium==0.20.0
+pydeck==0.9.1
+pandas==2.3.3
+numpy==2.4.0
+Pillow==12.1.0
 Authlib==1.6.5
