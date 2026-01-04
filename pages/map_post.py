@@ -48,7 +48,7 @@ st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 
 # ======= Database setup =======
-conn = sqlite3.connect(r"database\map_posts.db")
+conn = sqlite3.connect(r"database/map_posts.db")
 cursor = conn.cursor()
 try:
 	cursor.execute("""CREATE TABLE IF NOT EXISTS map_posts    (

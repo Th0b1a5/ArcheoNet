@@ -42,7 +42,7 @@ if "userID" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state['username'] = None
 
-conn = sqlite3.connect(r"database\users.db")
+conn = sqlite3.connect(r"database/users.db")
 cursor = conn.cursor()
 try:
     cursor.execute("""CREATE TABLE users    (
@@ -53,7 +53,7 @@ try:
 except sqlite3.OperationalError:
     print("Table already exists")
 
-allowed_char = r"a-zA-Z0-9\-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
+allowed_char = r"a-zA-Z0-9/-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
 pattern_char = rf"^[{allowed_char}]+$"
 
 # ======= Styles =======
