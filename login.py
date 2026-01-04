@@ -173,4 +173,3 @@ verify_google()
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
-st.write("https://your-tunnel.ngrok-free.app")
