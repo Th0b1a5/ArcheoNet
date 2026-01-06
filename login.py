@@ -16,6 +16,9 @@ import folium
 from streamlit_folium import st_folium
 from PIL import Image, ImageOps
 import io
+import urllib.parse
+import requests
+from streamlit_redirect import redirect
 
 import modules.get_ip as get_ip
 import modules.location as location
@@ -41,6 +44,9 @@ if "userID" not in st.session_state:
 
 if "username" not in st.session_state:
     st.session_state['username'] = None
+
+SEZNAM_CONFIG = st.secrets["auth"]["seznam"]
+
 
 conn = sqlite3.connect(r"database/users.db")
 cursor = conn.cursor()
@@ -131,8 +137,28 @@ def register_page():
                 st.rerun()
             else:
                 st.error(result)
+  
+def login_google():
+    if st.button("Log in with google"):
+        st.login("google")
+        
+def login_seznam():  
+    # 2. Build the URL (Same logic as before)
+    params = {
+        "client_id": SEZNAM_CONFIG["client_id"],
+        "scope": SEZNAM_CONFIG["scope"],
+        "response_type": "code",
+        "redirect_uri": SEZNAM_CONFIG["redirect_uri"],
+        "state": "seznam_manual_flow" 
+    }
+    auth_url = f"{SEZNAM_CONFIG['authorize_url']}?{urllib.parse.urlencode(params)}"
 
-def verify_google():
+    # 3. THE TRICK: Use JavaScript to navigate in the CURRENT tab
+    # This prevents opening a new tab and solves your UX issue.
+    if st.button("Login with Seznam"):
+        redirect(auth_url)
+
+def process_google_token():
     user_data = st.experimental_user
     if user_data["is_logged_in"] == False:
         pass
@@ -141,7 +167,68 @@ def verify_google():
         st.session_state['username'] = user_data["name"]
         st.switch_page("pages/app.py")
 
-verify_google()
+def process_seznam_token():
+    """Exchanges the code for a token manually."""
+    query_params = st.query_params
+    code = query_params.get("code")
+    state = query_params.get("state")
+
+    # Only process if we see a code AND it matches our Seznam state
+    if code and state == "seznam_manual_flow":
+        try:
+            # THIS IS THE KEY FIX: Sending secrets in the 'data' (Body), not headers
+            token_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": SEZNAM_CONFIG["redirect_uri"],
+                "client_id": SEZNAM_CONFIG["client_id"],
+                "client_secret": SEZNAM_CONFIG["client_secret"] 
+            }
+            
+            # Manual POST request
+            response = requests.post(SEZNAM_CONFIG["token_url"], data=token_data)
+            response.raise_for_status() # This will catch the 400 error if it persists
+            
+            # If successful, parse token
+            tokens = response.json()
+            st.session_state["seznam_token"] = tokens
+            
+            # Clear URL params to clean up
+            st.query_params.clear()
+            st.rerun()
+            
+        except requests.exceptions.HTTPError as e:
+            st.error(f"Seznam Token Error: {e}")
+            st.write(response.text) # Print exact error from Seznam for debugging
+            
+    if "seznam_token" in st.session_state:
+        st.session_state["userID"] = st.session_state["seznam_token"].get("oauth_user_id")
+        name, data = get_seznam_username(st.session_state["seznam_token"]["access_token"])
+        st.session_state["username"] = name
+        st.switch_page("pages/app.py")
+
+
+def get_seznam_username(access_token):
+    user_info_url = "https://login.szn.cz/api/v1/user"
+
+    # 2. Set the headers with your new Access Token
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    # 3. Make the request
+    response = requests.get(user_info_url, headers=headers)
+    data = response.json()
+
+    # 4. Extract the name safely
+    # Seznam usually provides 'account_name' (display name), but sometimes only 'username'.
+    # We try 'account_name' first, then fall back to 'username'.
+    full_name = data.get("firstname") + " " + data.get("lastname") or data.get("account_name")
+    
+    return full_name, data
+
+process_google_token()
+process_seznam_token()
 
 if st.session_state.option == "Register":
     register_page()
@@ -166,10 +253,8 @@ else:
         st.session_state.option = "Register"
         st.rerun()
 
-if st.button("Log in with google"):
-    st.login("google")
-
-verify_google()
+login_google()
+login_seznam()
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

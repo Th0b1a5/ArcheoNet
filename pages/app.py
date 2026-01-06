@@ -59,12 +59,16 @@ if st.button("Actions"):
 	st.switch_page("pages/pages.py")
 
 if st.button("Logout"):
+	st.session_state["seznam_token"] = None
 	st.logout()
 	st.session_state["userID"] = None
 	st.rerun()
 
+st.title("Google info")
 st.json(st.experimental_user)
 
+st.title("Seznam info")
+st.json(st.session_state["seznam_token"])
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
 # streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
