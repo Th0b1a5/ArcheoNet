@@ -32,9 +32,4 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
       
-if "last_object" not in st.session_state:
-    st.session_state['last_object'] = None
-
-m = folium.Map(location=[37.7749, -122.4194], zoom_start=12)
-
-st_folium(m, width=700, height=700)
+styles.apply()

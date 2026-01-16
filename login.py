@@ -44,102 +44,17 @@ if "userID" not in st.session_state:
 
 if "username" not in st.session_state:
     st.session_state['username'] = None
+    
+if "seznam_token" not in st.session_state:
+    st.session_state["seznam_token"] = None    
 
 SEZNAM_CONFIG = st.secrets["auth"]["seznam"]
-
-
-conn = sqlite3.connect(r"database/users.db")
-cursor = conn.cursor()
-try:
-    cursor.execute("""CREATE TABLE users    (
-                    username TEXT PRIMARY KEY,
-                    password TEXT
-        )""")
-    conn.commit()
-except sqlite3.OperationalError:
-    print("Table already exists")
-
-allowed_char = r"a-zA-Z0-9/-_.#@ěščřžýáíéúůťňďóĚŠČŘŽÝÁÍÉÚŮŤŇĎÓ"
-pattern_char = rf"^[{allowed_char}]+$"
-
 # ======= Styles =======
 styles.apply()
 
-# ======= Functions =======
-def register_user(username, password):
-    if username == None or password == None or username == "" or password == "":
-        return "Please insert a value"
-    
-    elif not re.match(pattern_char, username):
-        return f"Username contains unwanted characters. Allowed characters: {allowed_char}"
-
-    else:
-        try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            return True
-        
-        except sqlite3.IntegrityError:
-            return "User already exists"
-        
-        except sqlite3.DatabaseError:
-            return "Database error, please refresh this page"
-
-def verify_user(username, password):
-    cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-    result = cursor.fetchone()
-    print(result)
-
-    if result:
-        conn.close()
-        return True
-    else:
-        return "User not found or password incorrect"
-
-
-# ======= Title =======
-#st.title("ArcheoNet DEV DEMO VERSION Login")
-
-# ======= Login =======
-def login_page():
-    st.title("Login")
-
-    with st.form(key="login"):
-        username = st.text_input("Username")
-
-        password = st.text_input("Password", type="password")
-
-        if st.form_submit_button():
-            result = verify_user(username, password)
-
-            if result == True:
-                st.session_state["userID"] = username
-                st.session_state["username"] = username
-                st.success(result)
-                st.switch_page("pages/app.py")
-
-            else:
-                st.error(result)
-
-def register_page():
-    st.title("Register")
-
-    with st.form(key="register"):
-        reg_username = st.text_input("Enter username")
-
-        reg_password = st.text_input("Enter password", type="password")
-
-        if st.form_submit_button():
-            result = register_user(reg_username, reg_password)
-            
-            if result == True:
-                st.session_state.option = "Login"
-                st.rerun()
-            else:
-                st.error(result)
-  
+# ======= Authentication Logic =======
 def login_google():
-    if st.button("Log in with google"):
+    if st.button("Log in with Google"):
         st.login("google")
         
 def login_seznam():  
@@ -195,14 +110,20 @@ def process_seznam_token():
             
             # Clear URL params to clean up
             st.query_params.clear()
-            st.rerun()
+            #st.rerun()
             
         except requests.exceptions.HTTPError as e:
             st.error(f"Seznam Token Error: {e}")
             st.write(response.text) # Print exact error from Seznam for debugging
             
     if "seznam_token" in st.session_state:
-        st.session_state["userID"] = st.session_state["seznam_token"].get("oauth_user_id")
+        try:
+            st.session_state["userID"] = st.session_state["seznam_token"].get("oauth_user_id")
+            print("Getting Seznam user info...")
+        except:
+            return
+        
+        print("Success, redirecting")
         name, data = get_seznam_username(st.session_state["seznam_token"]["access_token"])
         st.session_state["username"] = name
         st.switch_page("pages/app.py")
@@ -227,34 +148,19 @@ def get_seznam_username(access_token):
     
     return full_name, data
 
+
+if len(st.query_params) > 0:
+    process_seznam_token()
+
 process_google_token()
-process_seznam_token()
 
-if st.session_state.option == "Register":
-    register_page()
-    if st.button("Login"):
-        st.session_state.option = "Login"
-        st.rerun()
-
-elif st.session_state.option == "Login":
-    login_page()
-    if st.button("Register"):
-        st.session_state.option = "Register"
-        st.rerun()
-
-else:
-    st.title("ArcheoNet")
-    st.caption("Please chose one of the options below:")
-    if st.button("Login"):
-        st.session_state.option = "Login"
-        st.rerun()
-
-    if st.button("Register"):
-        st.session_state.option = "Register"
-        st.rerun()
-
+st.title("Login to ArcheoNet (alpha)")
 login_google()
 login_seznam()
+
+if st.button("Legacy login"):
+    st.switch_page("pages/intercept_legacy_login.py")
+
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

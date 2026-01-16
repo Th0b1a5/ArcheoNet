@@ -70,5 +70,8 @@ st.json(st.experimental_user)
 st.title("Seznam info")
 st.json(st.session_state["seznam_token"])
 
+st.markdown(st.session_state["userID"])
+
+
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
 # streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
