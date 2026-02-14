@@ -11,3 +11,4 @@ Authlib==1.6.5
 python-dotenv==1.2.1
 requests
 streamlit_redirect==0.1.0
+streamlit-extras==0.7.8

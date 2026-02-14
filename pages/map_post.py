@@ -119,84 +119,85 @@ def get_geolocation():
 
 def map_post():
 	# ======= Get data from user =======	
-	name = st.text_input("Name your find!", key="post_name")
-	description = st.text_area("Describe your find!", key="post_description")
+	name = st.text_input("Pojmenujte váš nález", key="post_name")
+	description = st.text_area("Popište co jste našli", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	post_type = st.selectbox(
-		"Select post type",
-		["Underground", "Building", "Location", "Small object", "Medium object", "Large object"]
+		"Vyberter typ",
+		["Místo", "Budova", "Nábožensky zaměřené", "Kámen", "Mince", "Nástroj", "Kost"]
      )	# ADD POST TYPES
 	
 
-	uploaded_file = st.file_uploader("Take a picture!")
+	uploaded_file = st.file_uploader("Vyfoťte to")
 	image = None
 	if uploaded_file:
 		image = Image.open(uploaded_file)
-		image = ImageOps.exif_transpose(image)  # Auto-rotate based on EXIF tag
+		image = ImageOps.exif_transpose(image)
+		image = image.convert('RGB')
+		image.thumbnail((1920, 1920))
 		st.image(image)
-		# Convert image to bytes
+
 		img_byte_arr = io.BytesIO()
-		image.save(img_byte_arr, format='JPEG', quality=50)  # or use uploaded_file.type.split('/')[-1].upper() for format
+		image.save(img_byte_arr, format='JPEG', quality=40, optimize=True)  # or use uploaded_file.type.split('/')[-1].upper() for format
 		image = img_byte_arr.getvalue()
 
   
 	# ======= User location =======
-	if st.toggle("Share location", True):
-		latitude, longitude = get_geolocation()
-		st.header("Your location")
-		if latitude == None or latitude == "":
-			st.error("GPS is not enabled or unavatible. Please chaeck that you have enabled GPS in the perrmission settings on your phone.")
-		else:
 
-			user_pos = pd.DataFrame({
-				"latitude": [latitude],
-				"longitude": [longitude]
-			})
-
-			st.map(user_pos, height=200)
+	latitude, longitude = get_geolocation()
+	st.header("Vaše pozice")
+	if latitude == None or latitude == "":
+		st.error("GPS není dostupná, prosím zkontrolujte že máte polohové služby zapnuté a povolené oprávnění")
 	else:
-		latitude, longitude = None, None
+
+		user_pos = pd.DataFrame({
+			"latitude": [latitude],
+			"longitude": [longitude]
+		})
+
+		st.map(user_pos, height=200)
+
 
 	# ======= Submit post handling =======
-	if st.button("Post", use_container_width=True):
+	if st.button("Zveřejnit", use_container_width=True):
 		if name == None or name == "":
-			st.session_state["last_state"] = "Fill in the name"
+			st.session_state["last_state"] = "Vyplňte název"
 			st.rerun()
 
 		elif description == None or description == "":
-			st.session_state["last_state"] = "Fill in the description"
+			st.session_state["last_state"] = "Vyplňte popisek"
 			st.rerun()	
 
 		elif latitude == None or longitude == None:
 			pass
 
 		elif image == None or image == "":
-			st.session_state["last_state"] = "An image is required for a post"		
+			st.session_state["last_state"] = "Obrázek je vyžadován aby jste mohli pokračovat"		
 			st.rerun()
 
 		elif timestamp == None or timestamp == "":
-			st.session_state["last_state"] = "An error has occured: Timestamp generation error."
+			st.session_state["last_state"] = "Chyba generace času, server error. Prosím kontaktujte ArcheoNet tým přes email."
 			st.rerun()
 
 		else:
 			id = generate_id(latitude, longitude, name, userID) # Move to the end!
 			
 			if id == None or id == "":
-				st.session_state["last_state"] = "ID generation error. Please try again later."
-				st.error("An error has occured: ID generation error. Please try again later.")
+				st.session_state["last_state"] = "Chyba generování ID, zkuste to prosím později."
+				st.error("Chyba generování ID, zkuste to prosím později.")
 
 			else:
 				try:
 					cursor.execute("""
 						INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id)
 						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-					""", (latitude, longitude, name, description, username, image, timestamp, post_type,id))
+					""", (latitude, longitude, name, description, username, image, timestamp, post_type, id))
 					conn.commit()
 					st.switch_page("pages/post_success.py")
      
 				except sqlite3.IntegrityError:
-					st.session_state["last_state"] = "An error has occured: Duplicate ID. Please try again later."	
-					st.error("An error has occured: Duplicate ID. Please try again later.")
+					st.session_state["last_state"] = "Chyba, zkuste to prosím později: Duplicate ID generated."	
+					st.error("Chyba, zkuste to prosím později: Duplicate ID generated.")
 					st.rerun()		
 
 def display_warnings(warning):
@@ -206,7 +207,7 @@ def display_warnings(warning):
 		st.session_state["last_state"] = None
 	
 # ======= Page =======
-st.title("Create a map post")
+st.title("Vytvořte příspěvek")
 
 display_warnings(st.session_state["last_state"])
 map_post()

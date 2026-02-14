@@ -1,3 +1,10 @@
 [client]
 showSidebarNavigation = false
 showErrorDetails = false
+
+
+[ui]
+hideTopBar = false
+
+[theme]
+base = "dark"

@@ -19,11 +19,14 @@ import io
 import urllib.parse
 import requests
 from streamlit_redirect import redirect
+from streamlit_extras.exception_handler import set_global_exception_handler
 
 import modules.get_ip as get_ip
 import modules.location as location
 import modules.styles as styles
+import modules.exception_handler as excHandler
 
+set_global_exception_handler(excHandler.handler)
 # ===== SETUP =====
 st.set_page_config(
     page_title="ArcheoNet DEV VERSION (alpaha) Login",
@@ -31,6 +34,43 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+st.markdown("""
+<style>
+    h1 {
+        font-size: 72px !important;  
+        text-align: center !important;
+        margin-bottom: 18px !important;
+    }
+
+    .st-key-google button {
+        background-color: white !important;
+        color: #31333F !important;
+        border: 1px solid #d3d3d3 !important; 
+            
+        background-image: url('https://www.gstatic.com/marketing-cms/assets/images/d5/dc/cfe9ce8b4425b410b49b7f2dd3f3/g.webp=s96-fcrop64=1,00000000ffffffff-rw');
+        background-repeat: no-repeat;
+        background-position: 15px center; /* Pozice: 15px zleva, uprostřed výšky */
+        background-size: 24px;
+    }
+    
+    .st-key-seznam button {
+        background-color: white !important;
+        color: #31333F !important;
+        border: 1px solid #d3d3d3 !important; 
+            
+        background-image: url('https://www.seznam.cz/favicon.ico');
+        background-repeat: no-repeat;
+        background-position: 15px center; /* Pozice: 15px zleva, uprostřed výšky */
+        background-size: 24px;
+    }
+            
+    .st-key-google button:hover, .st-key-seznam button:hover {
+        background-color: #f0f2f6 !important;
+        border-color: #ff4b4b !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
@@ -54,7 +94,7 @@ styles.apply()
 
 # ======= Authentication Logic =======
 def login_google():
-    if st.button("Log in with Google"):
+    if st.button("Přihlásit přes Google", key="google"):
         st.login("google")
         
 def login_seznam():  
@@ -70,11 +110,11 @@ def login_seznam():
 
     # 3. THE TRICK: Use JavaScript to navigate in the CURRENT tab
     # This prevents opening a new tab and solves your UX issue.
-    if st.button("Login with Seznam"):
+    if st.button("Přihlásit přes Seznam", key="seznam"):
         redirect(auth_url)
 
 def process_google_token():
-    user_data = st.experimental_user
+    user_data = st.user
     if user_data["is_logged_in"] == False:
         pass
     elif user_data["is_logged_in"] == True:
@@ -154,12 +194,12 @@ if len(st.query_params) > 0:
 
 process_google_token()
 
-st.title("Login to ArcheoNet (alpha)")
+st.title("Vítejte v ArcheoNetu!")
 login_google()
 login_seznam()
 
-if st.button("Legacy login"):
-    st.switch_page("pages/intercept_legacy_login.py")
+#if st.button("Legacy login"):
+#    st.switch_page("pages/intercept_legacy_login.py")
 
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 

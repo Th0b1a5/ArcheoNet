@@ -32,4 +32,39 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
       
-styles.apply()
+
+st.markdown("""
+<style>
+.st-key-btn1 button {
+	position: fixed !important;
+			
+	bottom: 96px !important;
+	right: 12px !important;
+			
+	z-index: 1 !important;
+			
+	width: 150px !important;
+
+}
+			
+.st-key-btn2 button {
+	position: fixed !important;
+			
+	bottom: 96px !important;
+	left: 12px !important;
+			
+	z-index: 1 !important;
+			
+	width: 150px !important;
+
+}
+			
+</style>
+""", unsafe_allow_html=True)
+
+st.button("Btn1", key="btn1")
+
+st.button("Btn2", key="btn2")
+
+for i in range(20):
+	st.write(".............")

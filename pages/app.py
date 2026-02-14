@@ -29,11 +29,22 @@ st.set_page_config(
 	initial_sidebar_state="collapsed"
 )
 
+st.markdown("""
+<style>
+.st-key-logout button {
+	background-color: #e86464 !important;
+	color: #31333F !important;
+}
+			
+.st-key-logout button:hover {
+	background-color: #f25050 !important;
+}
+			
+</style>
+""", unsafe_allow_html=True)
+
 if "page" not in st.session_state:
     st.session_state.page = ""
-
-st.session_state.page = Path(__file__).name.replace('.py', '')
-print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
 
 try:
 	userID = (st.session_state['userID'])
@@ -46,31 +57,36 @@ if st.session_state["userID"] == None or st.session_state["userID"] == "":
 
 styles.apply()
 
-# ======= Page =======
-st.title("ArcheoNet DEV DEMO VERSION")
-st.toast(f"Logged in as {username}", icon="😍")
+if st.session_state.page == "login":
+	st.toast(f"Přihlášen jako :blue[{username}]", icon="🔑", duration="short")
 
-st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+st.session_state.page = Path(__file__).name.replace('.py', '')
+print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
+
+
+# ======= Page =======
+st.title(f"Vítejte {username}!")
+
+st.caption(f"Poslední aktualizace: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 st.divider()
 
 # ======= NAVIGATION BUTTONS =======
+if st.button("Zveřejnit místo"):
+	st.switch_page("pages/map_post.py")
 
-if st.button("Actions"):
+if st.button("Mapa"):
+	st.switch_page("pages/map.py")
+
+
+if st.button("Extra"):
 	st.switch_page("pages/pages.py")
 
-if st.button("Logout"):
+if st.button("Odhlásit", key="logout"):
 	st.session_state["seznam_token"] = None
 	st.logout()
 	st.session_state["userID"] = None
 	st.rerun()
 
-st.title("Google info")
-st.json(st.experimental_user)
-
-st.title("Seznam info")
-st.json(st.session_state["seznam_token"])
-
-st.markdown(st.session_state["userID"])
 
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

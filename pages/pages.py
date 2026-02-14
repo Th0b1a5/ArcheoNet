@@ -72,3 +72,10 @@ if st.button("Imovable button"):
 if st.button("Back"):
 	st.switch_page("pages/app.py")
 
+st.title("Google info")
+st.json(st.experimental_user)
+
+st.title("Seznam info")
+st.json(st.session_state["seznam_token"])
+
+st.markdown(st.session_state["userID"])
