@@ -32,6 +32,8 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
       
+if 'limit' not in st.session_state:
+    st.session_state['limit'] = 5
 
 st.markdown("""
 <style>
@@ -66,5 +68,12 @@ st.button("Btn1", key="btn1")
 
 st.button("Btn2", key="btn2")
 
-for i in range(20):
-	st.write(".............")
+import psycopg2
+
+try:
+    # Change 'your_password' to the one you just used in pgAdmin
+    conn = psycopg2.connect("dbname=map_posts user=postgres password=postgres host=localhost")
+    print("✅ Success! Connected to PostgreSQL.")
+    conn.close()
+except Exception as e:
+    print(f"❌ Connection failed: {e}")

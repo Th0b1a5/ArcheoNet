@@ -14,6 +14,8 @@ import secrets
 import re
 from PIL import Image, ImageOps
 import io
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 import modules.get_ip as get_ip
 import modules.location as location
@@ -46,25 +48,6 @@ if st.session_state.page != "map_post":
 
 st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
-
-# ======= Database setup =======
-conn = sqlite3.connect(r"database/map_posts.db")
-cursor = conn.cursor()
-try:
-	cursor.execute("""CREATE TABLE IF NOT EXISTS map_posts    (
-					latitude REAL,
-					longitude REAL,
-					name TEXT,
-					description TEXT,
-					owner TEXT,
-					image BLOB,
-					timestamp TEXT,
-					type TEXT,
-					id TEXT PRIMARY KEY
-		)""")
-	conn.commit()
-except sqlite3.OperationalError:
-	print("Error in creating or accessing the database")
 
 # ======= Styles =======
 styles.apply()
@@ -123,10 +106,9 @@ def map_post():
 	description = st.text_area("Popište co jste našli", key="post_description")
 	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	post_type = st.selectbox(
-		"Vyberter typ",
-		["Místo", "Budova", "Nábožensky zaměřené", "Kámen", "Mince", "Nástroj", "Kost"]
-     )	# ADD POST TYPES
-	
+		"Vyberter materiál nálezu",
+		["Keramika", "Kov", "Kámen", "Kost", "Jiné", "Neznámé"]
+	)
 
 	uploaded_file = st.file_uploader("Vyfoťte to")
 	image = None
@@ -138,7 +120,7 @@ def map_post():
 		st.image(image)
 
 		img_byte_arr = io.BytesIO()
-		image.save(img_byte_arr, format='JPEG', quality=40, optimize=True)  # or use uploaded_file.type.split('/')[-1].upper() for format
+		image.save(img_byte_arr, format='JPEG', quality=40, optimize=True)
 		image = img_byte_arr.getvalue()
 
   
@@ -188,17 +170,58 @@ def map_post():
 
 			else:
 				try:
+					conn = psycopg2.connect(
+						host=st.secrets["postgres"]["host"],
+						port=st.secrets["postgres"]["port"],
+						dbname=st.secrets["postgres"]["dbname"],
+						user=st.secrets["postgres"]["user"],
+						password=st.secrets["postgres"]["password"]
+					)
+					cursor = conn.cursor(cursor_factory=RealDictCursor)
+     
+					try:
+						cursor.execute("""CREATE TABLE IF NOT EXISTS map_posts    (
+										latitude REAL,
+										longitude REAL,
+										name TEXT,
+										description TEXT,
+										owner TEXT,
+										image BYTEA,
+										timestamp TEXT,
+										type TEXT,
+										id TEXT PRIMARY KEY,
+										userID TEXT
+							)""")
+						conn.commit()
+					except psycopg2.DatabaseError:
+						print("Error in creating or accessing the database")
+						st.session_state["last_state"] = "Chyba přístupu k databázi, zkuste to prosím později."
+						cursor.close()
+						conn.close()
+						st.rerun()
+        
 					cursor.execute("""
-						INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id)
-						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-					""", (latitude, longitude, name, description, username, image, timestamp, post_type, id))
+						INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id, userID)
+						VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+					""", (latitude, longitude, name, description, username, image, timestamp, post_type, id, userID))
 					conn.commit()
+     
+					cursor.close()
+					conn.close()
+     
 					st.switch_page("pages/post_success.py")
      
-				except sqlite3.IntegrityError:
+				except psycopg2.IntegrityError:
 					st.session_state["last_state"] = "Chyba, zkuste to prosím později: Duplicate ID generated."	
 					st.error("Chyba, zkuste to prosím později: Duplicate ID generated.")
-					st.rerun()		
+					cursor.close()
+					conn.close()
+					st.rerun()	
+     
+				except Exception as e:
+					st.session_state["last_state"] = "Chyba, zkuste to prosím později"
+					st.error("Chyba, zkuste to prosím později")
+					st.rerun()	
 
 def display_warnings(warning):
 	if warning != None and warning != "":

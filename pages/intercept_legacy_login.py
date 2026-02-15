@@ -33,7 +33,7 @@ st.markdown("""
 }
 h1 {
 	text-align: center;
-	font-size: 5rem !important; /* Make it huge */
+	font-size: 4rem !important; /* Make it huge */
 	font-family: 'Courier New', monospace; /* Change font */
 	padding-top: 2rem;
     }

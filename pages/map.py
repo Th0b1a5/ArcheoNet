@@ -161,7 +161,7 @@ def pull_db():
 
     cursor = conn.cursor()
 
-    cursor.execute(f"SELECT id, latitude, longitude, name, owner FROM map_posts ORDER BY timestamp DESC")
+    cursor.execute(f"SELECT id, latitude, longitude, name, owner, userID FROM map_posts ORDER BY timestamp DESC")
     posts = cursor.fetchall()
 
     st.session_state.locations = []
@@ -171,7 +171,7 @@ def pull_db():
             "lat": post["latitude"],
             "lon": post["longitude"],
             "tag": post["id"],
-            "owner": post["owner"]
+            "userID": post["userID"]
         })
 
         
@@ -274,7 +274,7 @@ m = add_user_marker(m, user_lat, user_lon)
 # Add markers with popups
 for loc in st.session_state.locations:
     
-    if loc["owner"] == st.session_state["username"]:
+    if loc["userID"] == st.session_state["userID"]:
         color = "orange"
     else:
         color = "blue"
@@ -349,8 +349,6 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
         
         <h3>Popis:</h3>
         <p style="margin-bottom: 20px;">{desc}</p>
-
-
 
         """
         st.markdown(display_window_html, unsafe_allow_html=True)

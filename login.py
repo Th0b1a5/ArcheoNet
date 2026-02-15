@@ -26,7 +26,7 @@ import modules.location as location
 import modules.styles as styles
 import modules.exception_handler as excHandler
 
-set_global_exception_handler(excHandler.handler)
+#set_global_exception_handler(excHandler.handler)
 # ===== SETUP =====
 st.set_page_config(
     page_title="ArcheoNet DEV VERSION (alpaha) Login",
@@ -38,7 +38,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     h1 {
-        font-size: 72px !important;  
+        font-size: 16vw !important;  
         text-align: center !important;
         margin-bottom: 18px !important;
     }
@@ -198,8 +198,8 @@ st.title("Vítejte v ArcheoNetu!")
 login_google()
 login_seznam()
 
-#if st.button("Legacy login"):
-#    st.switch_page("pages/intercept_legacy_login.py")
+if st.button("Legacy login"):
+    st.switch_page("pages/intercept_legacy_login.py")
 
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 

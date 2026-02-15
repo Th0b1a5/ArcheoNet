@@ -16,20 +16,22 @@ import folium
 from streamlit_folium import st_folium
 from PIL import Image, ImageOps
 import io
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 import modules.get_ip as get_ip
 import modules.location as location
 import modules.styles as styles
 
 
-if 'lenght' not in st.session_state:
-    st.session_state.lenght = 1
+if 'length' not in st.session_state:
+    st.session_state.length = 1
     
 if "page" not in st.session_state:
     st.session_state.page = "fetchdb"
 
 if st.session_state.page != "fetchdb":
-    st.session_state.lenght = 3
+    st.session_state.length = 3
 
 st.session_state.page = Path(__file__).name.replace('.py', '')
 print(f"Device connected! {datetime.now():%Y-%m-%d %H:%M:%S} - IP: {get_ip.pull_ip()} - {st.session_state.page}")
@@ -52,18 +54,23 @@ st.set_page_config(
 styles.apply()
 
 # ======= Database stuff =======
-conn = sqlite3.connect('database/map_posts.db')
-# Return in dictionary format
-conn.row_factory = sqlite3.Row
-
-cursor = conn.cursor()
-
 def fetch_db():
+    conn = psycopg2.connect(
+        host=st.secrets["postgres"]["host"],
+        port=st.secrets["postgres"]["port"],
+        dbname=st.secrets["postgres"]["dbname"],
+        user=st.secrets["postgres"]["user"],
+        password=st.secrets["postgres"]["password"]
+    )
 
-
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     # DB and displaying posts
-    cursor.execute(f"SELECT * FROM map_posts WHERE latitude ORDER BY timestamp DESC LIMIT {st.session_state.lenght}")
+    cursor.execute("SELECT * FROM map_posts WHERE latitude IS NOT NULL ORDER BY timestamp DESC LIMIT %s", (st.session_state.length,))
     posts = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
     if not posts:
         st.write("No posts found in the database.")
         return
@@ -83,7 +90,7 @@ def fetch_db():
             st.image(image, width=400)
 
     if st.button("Fetch more"):
-        st.session_state.lenght = st.session_state.lenght + 2
+        st.session_state.length = st.session_state.length + 2
         st.rerun()
     
 
