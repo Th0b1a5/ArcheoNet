@@ -60,7 +60,8 @@ def fetch_db():
         port=st.secrets["postgres"]["port"],
         dbname=st.secrets["postgres"]["dbname"],
         user=st.secrets["postgres"]["user"],
-        password=st.secrets["postgres"]["password"]
+        password=st.secrets["postgres"]["password"],
+        sslmode="require"
     )
 
     cursor = conn.cursor(cursor_factory=RealDictCursor)

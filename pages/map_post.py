@@ -175,7 +175,8 @@ def map_post():
 						port=st.secrets["postgres"]["port"],
 						dbname=st.secrets["postgres"]["dbname"],
 						user=st.secrets["postgres"]["user"],
-						password=st.secrets["postgres"]["password"]
+						password=st.secrets["postgres"]["password"],
+						sslmode="require"
 					)
 					cursor = conn.cursor(cursor_factory=RealDictCursor)
      
@@ -190,7 +191,8 @@ def map_post():
 										timestamp TEXT,
 										type TEXT,
 										id TEXT PRIMARY KEY,
-										userID TEXT
+										userID TEXT,
+					 					position INTEGER
 							)""")
 						conn.commit()
 					except psycopg2.DatabaseError:
@@ -220,6 +222,7 @@ def map_post():
      
 				except Exception as e:
 					st.session_state["last_state"] = "Chyba, zkuste to prosím později"
+					print(e)
 					st.error("Chyba, zkuste to prosím později")
 					st.rerun()	
 

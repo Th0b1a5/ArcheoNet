@@ -46,7 +46,7 @@ if st.button("Make a post"):
 	st.switch_page("pages/map_post.py")
 	
 if st.button("Browse posts"):
-	st.switch_page("pages/posts.py")
+	st.switch_page("pages/latest_posts.py")
 
 if st.button("Map"):
 	st.switch_page("pages/map.py")

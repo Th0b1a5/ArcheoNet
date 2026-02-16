@@ -83,6 +83,10 @@ st.markdown(fullscreen_map_css, unsafe_allow_html=True)
 
 display_window_css = """
 <style>
+body {
+  overflow: hidden; /* Hide scrollbars */
+}
+
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
@@ -106,7 +110,8 @@ display_window_css = """
     transition: transform 0.4s ease-in-out;
     transform: translateY(100%);
     z-index: 9999;
-    padding: 30px;
+    padding-left: 24px;
+    padding-right: 24px;
 }
 #display_window.open {
     animation: slideUp 0.4s ease-out forwards;
@@ -128,7 +133,7 @@ button.inner-btn:hover {
 
 div.stButton > button[kind="primary"] {
     position: fixed;
-    bottom: 76vh;
+    bottom: 75vh;
     right: 22px;
     z-index: 10000;
     width: 40px;
@@ -163,7 +168,8 @@ def pull_db():
             port=st.secrets["postgres"]["port"],
             dbname=st.secrets["postgres"]["dbname"],
             user=st.secrets["postgres"]["user"],
-            password=st.secrets["postgres"]["password"]
+            password=st.secrets["postgres"]["password"],
+            sslmode="require"
         )
 
         cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -268,7 +274,8 @@ def get_information(id):
                 port=st.secrets["postgres"]["port"],
                 dbname=st.secrets["postgres"]["dbname"],
                 user=st.secrets["postgres"]["user"],
-                password=st.secrets["postgres"]["password"]
+                password=st.secrets["postgres"]["password"],
+                sslmode="require"
             )
 
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -280,7 +287,8 @@ def get_information(id):
         try:
             cursor.execute("SELECT owner, description, timestamp, type, image FROM map_posts WHERE id = %s", (id,))
             inf = cursor.fetchone()
-            print(inf[0]['owner'])
+            print(inf)
+            print("Fetch done! Success")
         except:
             return None, None, None, None, None
         
@@ -288,7 +296,7 @@ def get_information(id):
             if cursor: cursor.close()
             if conn: conn.close()
             
-        return inf[0]['description'], inf[0]['owner'], inf[0]['timestamp'], inf[0]['type'], inf[0]['image']
+        return inf['description'], inf['owner'], inf['timestamp'], inf['type'], inf['image']
     
     else:
         return None, None, None, None, None
@@ -341,7 +349,7 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
         display_window_html = f"""
         <div id="display_window" class="{ 'open' if st.session_state.display_window else '' }">
 
-        <h1>{name}</h1>
+        <h1 style="font-size: 10vw; margin: 40px 8px 28px 0">{name}</h1>
 
         <img src="data:image/jpeg;base64,{image}"
             style="
@@ -350,7 +358,6 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
             aspect-ratio: 1 / 1;
             object-fit: cover;
         ">
-
         
         <div style="
             display: flex;
@@ -362,6 +369,7 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
             display: flex;
             align-items: center; 
             justify-content: flex-start;
+            margin-top: 12px;
         ">
         <img src="data:image/png;base64,{modules.assets.PFP_SMALL}" 
             style="height: 50px;">
@@ -384,11 +392,11 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
             margin-top: 16px;
         ">Typ: {type}</p>
         
-        <h3>Popis:</h3>
-        <p style="margin-bottom: 20px;">{desc}</p>
+        <h3 style="font-size: 32px; margin: 4px 4px 4px 0;">Popis:</h3>
+        <p style="margin-bottom: 40px;">{desc}</p>
 
         """
-        st.markdown(display_window_html, unsafe_allow_html=True)
+        st.html(display_window_html)
 
         #<p style="
         #    color: #888;
