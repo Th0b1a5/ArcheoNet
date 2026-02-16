@@ -1,3 +1,4 @@
+import psycopg2
 import streamlit as st
 from streamlit_geolocation import streamlit_geolocation
 from streamlit_js_eval import streamlit_js_eval, copy_to_clipboard, create_share_link, get_geolocation
@@ -18,6 +19,8 @@ from PIL import Image, ImageOps
 import io
 import base64
 from io import BytesIO
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 import modules.get_ip as get_ip
 import modules.location as location
@@ -153,26 +156,46 @@ if user_lat == None or user_lon == None:
 
 # ======= PULLING DATA FROM DATABASE =======
 def pull_db():
-
     print("Fetching db...")
-    conn = sqlite3.connect('database/map_posts.db')
-    # Return in dictionary format
-    conn.row_factory = sqlite3.Row
+    try:
+        conn = psycopg2.connect(
+            host=st.secrets["postgres"]["host"],
+            port=st.secrets["postgres"]["port"],
+            dbname=st.secrets["postgres"]["dbname"],
+            user=st.secrets["postgres"]["user"],
+            password=st.secrets["postgres"]["password"]
+        )
 
-    cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        print("Connection to DB successful!")
+        
+    except psycopg2.DatabaseError:
+        print("Chyba připojení k databázi, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
+        st.stop()
+        
+    try:
+        cursor.execute("SELECT id, latitude, longitude, name, owner, userid FROM map_posts ORDER BY timestamp DESC")
+        posts = cursor.fetchall()
 
-    cursor.execute(f"SELECT id, latitude, longitude, name, owner, userID FROM map_posts ORDER BY timestamp DESC")
-    posts = cursor.fetchall()
-
-    st.session_state.locations = []
-    for post in posts:
-        st.session_state.locations.append({
-            "name": post["name"],
-            "lat": post["latitude"],
-            "lon": post["longitude"],
-            "tag": post["id"],
-            "userID": post["userID"]
-        })
+        st.session_state.locations = []
+        for post in posts:
+            st.session_state.locations.append({
+                "name": post["name"],
+                "lat": post["latitude"],
+                "lon": post["longitude"],
+                "tag": post["id"],
+                "userID": post["userid"]
+            })
+            
+        cursor.close()
+        conn.close()
+        return st.session_state.locations
+    
+    except psycopg2.DatabaseError:
+        cursor.close()
+        conn.close()
+        print("Chyba databáze, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
+        st.stop()
 
         
 
@@ -239,20 +262,34 @@ def enable_window(map_data):
 def get_information(id):
     print(id)
     if id != None:
-        print("Fetching details...")
-        conn = sqlite3.connect('database/map_posts.db')
-        # Return in dictionary format
-        conn.row_factory = sqlite3.Row
-
-        cursor = conn.cursor()
-        print(id)
         try:
-            cursor.execute(f"SELECT owner, description, timestamp, type, image FROM map_posts WHERE id = ?", (id,))
-            inf = cursor.fetchall()
+            conn = psycopg2.connect(
+                host=st.secrets["postgres"]["host"],
+                port=st.secrets["postgres"]["port"],
+                dbname=st.secrets["postgres"]["dbname"],
+                user=st.secrets["postgres"]["user"],
+                password=st.secrets["postgres"]["password"]
+            )
+
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            print("Connection to DB successful!")
+        except psycopg2.DatabaseError:
+            print("Chyba připojení k databázi, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
+            st.stop()
+        
+        try:
+            cursor.execute("SELECT owner, description, timestamp, type, image FROM map_posts WHERE id = %s", (id,))
+            inf = cursor.fetchone()
             print(inf[0]['owner'])
-            return inf[0]['description'], inf[0]['owner'], inf[0]['timestamp'], inf[0]['type'], inf[0]['image']
         except:
-            return None
+            return None, None, None, None, None
+        
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
+            
+        return inf[0]['description'], inf[0]['owner'], inf[0]['timestamp'], inf[0]['type'], inf[0]['image']
+    
     else:
         return None, None, None, None, None
     
