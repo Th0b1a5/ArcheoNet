@@ -20,6 +20,7 @@ import io
 import modules.get_ip as get_ip
 import modules.location as location
 import modules.styles as styles
+import modules.assets as assets
 
 # ===== SCRIPTS =====
 st.set_page_config(
@@ -77,9 +78,8 @@ if st.button("Zveřejnit místo"):
 if st.button("Mapa"):
 	st.switch_page("pages/map.py")
 
-
-if st.button("Extra"):
-	st.switch_page("pages/pages.py")
+if st.button("Příspěvky"):
+	st.switch_page("pages/latest_posts.py")
 
 if st.button("Odhlásit", key="logout"):
 	st.session_state["seznam_token"] = None
@@ -87,7 +87,7 @@ if st.button("Odhlásit", key="logout"):
 	st.session_state["userID"] = None
 	st.rerun()
 
-
+assets.ask_patreon()
 
 # Launch app: streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem
 # streamlit run app.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

@@ -57,7 +57,7 @@ st.markdown("""
 .st-key-btn1 button {
 	position: fixed !important;
 			
-	bottom: 96px !important;
+	bottom: 8vh !important;
 	right: 12px !important;
 			
 	z-index: 1 !important;
@@ -69,7 +69,7 @@ st.markdown("""
 .st-key-btn2 button {
 	position: fixed !important;
 			
-	bottom: 96px !important;
+	bottom: 8vh !important;
 	left: 12px !important;
 			
 	z-index: 1 !important;
@@ -94,39 +94,51 @@ def get_latest_by_number(pos):
         )
 
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        print("Connection to DB successful!")
         
     except psycopg2.DatabaseError:
         print("Chyba připojení k databázi, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
         st.stop()
 		
     try:
-        cursor.execute("SELECT name, owner, type, position id FROM map_posts ORDER BY position ASC LIMIT 1 OFFSET %s", (pos,))
-        posts = cursor.fetchone()
+        cursor.execute("SELECT name, owner, type, position, id, image, latitude, longitude FROM map_posts ORDER BY position ASC LIMIT 1 OFFSET %s", (pos,))
+        post = cursor.fetchone()
             
         cursor.close()
         conn.close()
         
-        return posts
+        return post
     
     except psycopg2.DatabaseError:
         cursor.close()
         conn.close()
-        print("Chyba databáze, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
+        st.error("Chyba databáze, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
         st.stop()
 
-if st.button("Další", key="btn1"):
-	st.session_state.length = st.session_state.length + 1
 
-if st.button("Předchozí", key="btn2"):
-	st.session_state.length = st.session_state.length - 1
-
-st.write(st.session_state.length)
 
 post = get_latest_by_number(st.session_state.length)
 
+if post != None:
+    if st.button("Další", key="btn1"):
+        st.session_state.length = st.session_state.length + 1
+        st.rerun()
+
+if st.session_state.length > 1:
+    if st.button("Předchozí", key="btn2"):
+        st.session_state.length = st.session_state.length - 1
+        st.rerun()
+
 if post == None:
-    st.write("No more posts :(")
+    st.title("Toto je konec! Žádné další příspěvky nejsou k dispozici.")
 else:
-    st.write(post)
+    st.title(post["name"])
+    st.image(bytes(post["image"]))
+    post_location = pd.DataFrame({
+			"latitude": [post["latitude"]],
+			"longitude": [post["longitude"]]
+		})
+
+    st.map(post_location, height=200)
     
+#st.write(st.session_state.length)
+#st.write(post)

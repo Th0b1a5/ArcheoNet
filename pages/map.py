@@ -25,7 +25,7 @@ from psycopg2.extras import RealDictCursor
 import modules.get_ip as get_ip
 import modules.location as location
 import modules.styles as styles
-import modules.assets
+import modules.assets as assets
 
 # =======INITALIZE SESSION STATE VARIABLES AND OTHER =======
 
@@ -80,13 +80,8 @@ iframe[title="streamlit_folium.st_folium"] {
 """
 st.markdown(fullscreen_map_css, unsafe_allow_html=True)
 
-
 display_window_css = """
 <style>
-body {
-  overflow: hidden; /* Hide scrollbars */
-}
-
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
@@ -102,7 +97,7 @@ body {
     left: 0;
     bottom: 0;
     width: 100%;
-    height: 85vh; 
+    height: 78vh;           /* Change this */
     background-color: #262730;
     border-top: 5px solid #666;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
@@ -110,11 +105,10 @@ body {
     transition: transform 0.4s ease-in-out;
     transform: translateY(100%);
     z-index: 9999;
-    padding-left: 24px;
-    padding-right: 24px;
+    padding: 30px;
 }
 #display_window.open {
-    animation: slideUp 0.4s ease-out forwards;
+    animation: slideUp 0.35s ease-out forwards;
 }
 
 button.inner-btn {
@@ -133,13 +127,13 @@ button.inner-btn:hover {
 
 div.stButton > button[kind="primary"] {
     position: fixed;
-    bottom: 75vh;
-    right: 22px;
+    bottom: calc(78vh - 76px);          /* Change this */
+    right: 28px;
     z-index: 10000;
     width: 40px;
     height: 40px;
     font-size: 28px !important;
-    line-height: 1 !important; /* Helps keep it centered vertically */
+    line-height: 1 !important;
     padding: 0 !important;
     margin: 0 !important;
 
@@ -149,7 +143,6 @@ div.stButton > button[kind="primary"] {
 </style>
 """
 st.markdown(display_window_css, unsafe_allow_html=True)
-
 
 
 user_lat, user_lon = location.get_geolocation()
@@ -168,8 +161,7 @@ def pull_db():
             port=st.secrets["postgres"]["port"],
             dbname=st.secrets["postgres"]["dbname"],
             user=st.secrets["postgres"]["user"],
-            password=st.secrets["postgres"]["password"],
-            sslmode="require"
+            password=st.secrets["postgres"]["password"]
         )
 
         cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -274,30 +266,28 @@ def get_information(id):
                 port=st.secrets["postgres"]["port"],
                 dbname=st.secrets["postgres"]["dbname"],
                 user=st.secrets["postgres"]["user"],
-                password=st.secrets["postgres"]["password"],
-                sslmode="require"
+                password=st.secrets["postgres"]["password"]
             )
 
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             print("Connection to DB successful!")
         except psycopg2.DatabaseError:
-            print("Chyba připojení k databázi, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
+            st.error("Chyba připojení k databázi, zkuste to prosím později nebo kontaktujte ArcheoNet team.")
             st.stop()
         
         try:
             cursor.execute("SELECT owner, description, timestamp, type, image FROM map_posts WHERE id = %s", (id,))
             inf = cursor.fetchone()
-            print(inf)
-            print("Fetch done! Success")
+            print(inf['owner'])
         except:
             return None, None, None, None, None
         
         finally:
             if cursor: cursor.close()
             if conn: conn.close()
-            
+
         return inf['description'], inf['owner'], inf['timestamp'], inf['type'], inf['image']
-    
+
     else:
         return None, None, None, None, None
     
@@ -349,12 +339,13 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
         display_window_html = f"""
         <div id="display_window" class="{ 'open' if st.session_state.display_window else '' }">
 
-        <h1 style="font-size: 10vw; margin: 40px 8px 28px 0">{name}</h1>
+        <h1 style="font-size: 11vw; margin: 12px 8px 28px 0">{name}</h1>
 
         <img src="data:image/jpeg;base64,{image}"
             style="
-            width: 90vw;
+            width: 100%;
             border-radius: 10px;
+
             aspect-ratio: 1 / 1;
             object-fit: cover;
         ">
@@ -371,8 +362,9 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
             justify-content: flex-start;
             margin-top: 12px;
         ">
-        <img src="data:image/png;base64,{modules.assets.PFP_SMALL}" 
-            style="height: 50px;">
+        <img src="data:image/png;base64,{assets.PFP_SMALL}" 
+            style="height: 50px;
+            ">
 
         <p style="margin-top: 18px; margin-left: 8px;">{owner}</p>
         </div>
@@ -406,5 +398,4 @@ else:
     st.session_state.display_wisndow = False
     st.session_state["last_id"] = map_data["last_object_clicked_popup"]
     
-    
-
+assets.ask_patreon()
