@@ -60,7 +60,7 @@ st.markdown("""
 	bottom: 8vh !important;
 	right: 12px !important;
 			
-	z-index: 1 !important;
+	z-index: 10 !important;
 			
 	width: 150px !important;
 
@@ -72,7 +72,7 @@ st.markdown("""
 	bottom: 8vh !important;
 	left: 12px !important;
 			
-	z-index: 1 !important;
+	z-index: 10 !important;
 			
 	width: 150px !important;
 

@@ -53,9 +53,9 @@ st.header("We STRONGLY recommend you to use Google or Seznam login instead. Plea
 if st.button("Return back to login"):
     st.switch_page("login.py")
 
-st.write("Wait 5s to continue...")
+st.write("Wait 2s to continue...")
 
-time.sleep(5)
+time.sleep(2)
 
 if st.button("Continue to legacy login"):
     st.switch_page("pages/legacy_login.py")

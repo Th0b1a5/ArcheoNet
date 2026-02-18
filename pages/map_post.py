@@ -16,6 +16,7 @@ from PIL import Image, ImageOps
 import io
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import html
 
 import modules.get_ip as get_ip
 import modules.location as location
@@ -113,16 +114,19 @@ def map_post():
 	uploaded_file = st.file_uploader("Vyfoťte to")
 	image = None
 	if uploaded_file:
-		image = Image.open(uploaded_file)
-		image = ImageOps.exif_transpose(image)
-		image = image.convert('RGB')
-		image.thumbnail((1920, 1920))
-		st.image(image)
+		try:
+			image = Image.open(uploaded_file)
+			image = ImageOps.exif_transpose(image)
+			image = image.convert('RGB')
+			image.thumbnail((1920, 1920))
+			st.image(image)
 
-		img_byte_arr = io.BytesIO()
-		image.save(img_byte_arr, format='JPEG', quality=40, optimize=True)
-		image = img_byte_arr.getvalue()
-
+			img_byte_arr = io.BytesIO()
+			image.save(img_byte_arr, format='JPEG', quality=40, optimize=True)
+			image = img_byte_arr.getvalue()
+		except:
+			st.error("Nepodařilo se načíst obrázek, zkuste to prosím znovu.")
+			image = None
   
 	# ======= User location =======
 
@@ -205,7 +209,7 @@ def map_post():
 					cursor.execute("""
 						INSERT INTO map_posts (latitude, longitude, name, description, owner, image, timestamp, type, id, userID)
 						VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-					""", (latitude, longitude, name, description, username, image, timestamp, post_type, id, userID))
+					""", (latitude, longitude, html.escape(name), html.escape(description), username, image, timestamp, html.escape(post_type), html.escape(id), userID))
 					conn.commit()
      
 					cursor.close()
