@@ -202,5 +202,6 @@ if st.button("Legacy login"):
     st.switch_page("pages/intercept_legacy_login.py")
 
 # Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
+# Logo at: https://drive.google.com/thumbnail?id=1GAt9nJyJ5kiRtvl0KGIPDqALTaGOaMGE&sz=w1000
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

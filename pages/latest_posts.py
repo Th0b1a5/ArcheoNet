@@ -90,7 +90,7 @@ def get_latest_by_number(pos):
             dbname=st.secrets["postgres"]["dbname"],
             user=st.secrets["postgres"]["user"],
             password=st.secrets["postgres"]["password"],
-            sslmode="require"
+            sslmode=st.secrets["postgres"].get("sslmode", "disable")
         )
 
         cursor = conn.cursor(cursor_factory=RealDictCursor)

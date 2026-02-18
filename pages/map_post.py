@@ -180,7 +180,7 @@ def map_post():
 						dbname=st.secrets["postgres"]["dbname"],
 						user=st.secrets["postgres"]["user"],
 						password=st.secrets["postgres"]["password"],
-						sslmode="require"
+						sslmode=st.secrets["postgres"].get("sslmode", "disable")
 					)
 					cursor = conn.cursor(cursor_factory=RealDictCursor)
      
@@ -196,7 +196,7 @@ def map_post():
 										type TEXT,
 										id TEXT PRIMARY KEY,
 										userID TEXT,
-					 					position INTEGER
+					 					position SERIAL
 							)""")
 						conn.commit()
 					except psycopg2.DatabaseError:
