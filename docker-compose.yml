@@ -6,14 +6,10 @@ x-web-template: &web-template
     - "8501"
   labels:
     - "traefik.enable=true"
-    # Route external traffic to this specific cluster
-    - "traefik.http.routers.archeonet.rule=Host(`archeonet.csproject.org`)"
+    # Tell the Load Balancer to accept traffic from your Cloudflare Worker
+    - "traefik.http.routers.archeonet.rule=Host(`archeonet-proxy.example.workers.dev`) || Host(`archeonet.csproject.org`)"
     - "traefik.http.routers.archeonet.service=archeonet-cluster"
-    # Enable automatic Let's Encrypt SSL
-    - "traefik.http.routers.archeonet.entrypoints=https"
-    - "traefik.http.routers.archeonet.tls=true"
-    - "traefik.http.routers.archeonet.tls.certresolver=letsencrypt"
-    # Configure the Load Balancer & Sticky Sessions
+    # Configure the Load Balancer & Sticky Sessions for Streamlit
     - "traefik.http.services.archeonet-cluster.loadbalancer.server.port=8501"
     - "traefik.http.services.archeonet-cluster.loadbalancer.sticky.cookie=true"
     - "traefik.http.services.archeonet-cluster.loadbalancer.sticky.cookie.name=archeonet_session"
