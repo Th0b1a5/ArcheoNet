@@ -20,7 +20,7 @@ RUN mkdir -p .streamlit
 EXPOSE 8501
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl --fail -k https://localhost:8501/_stcore/health || exit 1
+    CMD curl --fail -k http://localhost:8501/_stcore/health || exit 1
 
 ENTRYPOINT ["streamlit", "run", "login.py", "--server.port=8501", "--server.address=0.0.0.0"]
 
