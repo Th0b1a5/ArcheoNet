@@ -1,13 +1,35 @@
+x-web-template: &web-template
+  build:
+    context: .
+    dockerfile: Dockerfile
+  expose:
+    - "8501"
+  labels:
+    - "traefik.enable=true"
+    # Route external traffic to this specific cluster
+    - "traefik.http.routers.archeonet.rule=Host(`archeonet.csproject.org`)"
+    - "traefik.http.routers.archeonet.service=archeonet-cluster"
+    # Enable automatic Let's Encrypt SSL
+    - "traefik.http.routers.archeonet.entrypoints=https"
+    - "traefik.http.routers.archeonet.tls=true"
+    - "traefik.http.routers.archeonet.tls.certresolver=letsencrypt"
+    # Configure the Load Balancer & Sticky Sessions
+    - "traefik.http.services.archeonet-cluster.loadbalancer.server.port=8501"
+    - "traefik.http.services.archeonet-cluster.loadbalancer.sticky.cookie=true"
+    - "traefik.http.services.archeonet-cluster.loadbalancer.sticky.cookie.name=archeonet_session"
+
 services:
-  archeonet-web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    deploy:
-      replicas: 7
-    expose:
-      - "8501"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.archeonet-web.loadbalancer.sticky.cookie=true"
-      - "traefik.http.services.archeonet-web.loadbalancer.sticky.cookie.name=archeonet_session"
+  web-1:
+    <<: *web-template
+  web-2:
+    <<: *web-template
+  web-3:
+    <<: *web-template
+  web-4:
+    <<: *web-template
+  web-5:
+    <<: *web-template
+  web-6:
+    <<: *web-template
+  web-7:
+    <<: *web-template
