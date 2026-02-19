@@ -26,7 +26,7 @@ import modules.location as location
 import modules.styles as styles
 import modules.exception_handler as excHandler
 
-#set_global_exception_handler(excHandler.handler)
+set_global_exception_handler(excHandler.handler)
 # ===== SETUP =====
 st.set_page_config(
     page_title="ArcheoNet DEV VERSION (alpaha) Login",
