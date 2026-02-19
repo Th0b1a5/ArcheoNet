@@ -100,7 +100,7 @@ def get_latest_by_number(pos):
         st.stop()
 		
     try:
-        cursor.execute("SELECT name, owner, type, position, id, image, latitude, longitude FROM map_posts ORDER BY position ASC LIMIT 1 OFFSET %s", (pos,))
+        cursor.execute("SELECT name, owner, type, position, id, image, latitude, longitude FROM map_posts ORDER BY position DESC LIMIT 1 OFFSET %s", (pos,))
         post = cursor.fetchone()
             
         cursor.close()
@@ -140,5 +140,12 @@ else:
 
     st.map(post_location, height=200)
     
+st.html(f"""
+<br>
+<br>
+<br>
+<br>
+""")
+
 #st.write(st.session_state.length)
 #st.write(post)

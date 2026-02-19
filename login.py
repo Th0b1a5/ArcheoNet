@@ -114,7 +114,7 @@ def login_seznam():
         redirect(auth_url)
 
 def process_google_token():
-    user_data = st.user
+    user_data = st.user()
     if user_data["is_logged_in"] == False:
         pass
     elif user_data["is_logged_in"] == True:
@@ -166,6 +166,7 @@ def process_seznam_token():
         print("Success, redirecting")
         name, data = get_seznam_username(st.session_state["seznam_token"]["access_token"])
         st.session_state["username"] = name
+        st.session_state["userID"] = data["oauth_user_id"]
         st.switch_page("pages/app.py")
 
 
@@ -185,7 +186,7 @@ def get_seznam_username(access_token):
     # Seznam usually provides 'account_name' (display name), but sometimes only 'username'.
     # We try 'account_name' first, then fall back to 'username'.
     full_name = data.get("firstname") + " " + data.get("lastname") or data.get("account_name")
-    
+    print(data)
     return full_name, data
 
 
@@ -201,7 +202,6 @@ login_seznam()
 if st.button("Legacy login"):
     st.switch_page("pages/intercept_legacy_login.py")
 
-# Keep in ming we might migrate to postgres if we win the FLL championships, so dont go crazy with SQLite
 # Logo at: https://drive.google.com/thumbnail?id=1GAt9nJyJ5kiRtvl0KGIPDqALTaGOaMGE&sz=w1000
 
 # streamlit run login.py --server.sslCertFile=keys/cert.pem --server.sslKeyFile=keys/key.pem

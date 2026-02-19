@@ -38,4 +38,4 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
 
-st.error("An error occurred while submitting your post. Please try again.")
+st.error("Stala se chyba při odesílání vašeho příspěvku. Zkuste to prosím znovu.")

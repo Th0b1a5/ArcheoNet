@@ -38,7 +38,7 @@ except:
 if st.session_state["userID"] == None or st.session_state["userID"] == "":
 	st.switch_page("login.py")
  
-st.success("Your post has been successfully submitted!")
+st.success("Váš příspěvek byl úspěšně odeslán!")
 
 time.sleep(2)
 
