@@ -7,12 +7,7 @@ services:
       replicas: 7
     expose:
       - "8501"
-    volumes:
-      - archeonet-secrets:/app/.streamlit/secrets.toml
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.archeonet-web.loadbalancer.sticky.cookie=true"
       - "traefik.http.services.archeonet-web.loadbalancer.sticky.cookie.name=archeonet_session"
-
-volumes:
-  archeonet-secrets:
