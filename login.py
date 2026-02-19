@@ -154,7 +154,7 @@ def process_seznam_token():
             
         except requests.exceptions.HTTPError as e:
             st.error(f"Seznam Token Error: {e}")
-            st.write(response.text) # Print exact error from Seznam for debugging
+            st.write(response.text)
             
     if "seznam_token" in st.session_state:
         try:
@@ -186,7 +186,6 @@ def get_seznam_username(access_token):
     # Seznam usually provides 'account_name' (display name), but sometimes only 'username'.
     # We try 'account_name' first, then fall back to 'username'.
     full_name = data.get("firstname") + " " + data.get("lastname") or data.get("account_name")
-    print(data)
     return full_name, data
 
 
@@ -199,8 +198,8 @@ st.title("Vítejte v ArcheoNetu!")
 login_google()
 login_seznam()
 
-if st.button("Legacy login"):
-    st.switch_page("pages/intercept_legacy_login.py")
+#if st.button("Legacy login"):
+#    st.switch_page("pages/intercept_legacy_login.py")
 
 # Logo at: https://drive.google.com/thumbnail?id=1GAt9nJyJ5kiRtvl0KGIPDqALTaGOaMGE&sz=w1000
 

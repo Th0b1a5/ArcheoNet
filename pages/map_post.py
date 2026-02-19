@@ -135,7 +135,6 @@ def map_post():
 	if latitude == None or latitude == "":
 		st.error("GPS není dostupná, prosím zkontrolujte že máte polohové služby zapnuté a povolené oprávnění")
 	else:
-
 		user_pos = pd.DataFrame({
 			"latitude": [latitude],
 			"longitude": [longitude]
