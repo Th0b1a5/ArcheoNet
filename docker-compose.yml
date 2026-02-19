@@ -4,12 +4,16 @@ x-web-template: &web-template
     dockerfile: Dockerfile
   expose:
     - "8501"
+  # 1. Plug the clones into Coolify's network
+  networks:
+    - coolify
   labels:
     - "traefik.enable=true"
-    # Tell the Load Balancer to accept traffic from your Cloudflare Worker
-    - "traefik.http.routers.archeonet.rule=Host(`archeonet-proxy.example.workers.dev`) || Host(`archeonet.csproject.org`)"
+    # 2. Tell Traefik exactly which network to use to reach the clones
+    - "traefik.docker.network=coolify"
+    # 3. Add the -server domain so Cloudflare doesn't get a 404
+    - "traefik.http.routers.archeonet.rule=Host(`archeonet-proxy.example.workers.dev`) || Host(`archeonet-server.csproject.org`) || Host(`archeonet.csproject.org`)"
     - "traefik.http.routers.archeonet.service=archeonet-cluster"
-    # Configure the Load Balancer & Sticky Sessions for Streamlit
     - "traefik.http.services.archeonet-cluster.loadbalancer.server.port=8501"
     - "traefik.http.services.archeonet-cluster.loadbalancer.sticky.cookie=true"
     - "traefik.http.services.archeonet-cluster.loadbalancer.sticky.cookie.name=archeonet_session"
@@ -29,3 +33,8 @@ services:
     <<: *web-template
   web-7:
     <<: *web-template
+
+# Define the external Coolify network so Docker Compose knows it exists
+networks:
+  coolify:
+    external: true
