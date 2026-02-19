@@ -114,7 +114,7 @@ def login_seznam():
         redirect(auth_url)
 
 def process_google_token():
-    user_data = st.user()
+    user_data = st.user
     if user_data["is_logged_in"] == False:
         pass
     elif user_data["is_logged_in"] == True:
