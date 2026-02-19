@@ -5,11 +5,14 @@ services:
       dockerfile: Dockerfile
     deploy:
       replicas: 7
-    # Coolify's proxy will automatically find this exposed port
     expose:
       - "8501"
+    volumes:
+      - archeonet-secrets:/app/.streamlit/secrets.toml
     labels:
-      # These labels tell Coolify's Traefik proxy to route traffic and keep sessions sticky
       - "traefik.enable=true"
       - "traefik.http.services.archeonet-web.loadbalancer.sticky.cookie=true"
       - "traefik.http.services.archeonet-web.loadbalancer.sticky.cookie.name=archeonet_session"
+
+volumes:
+  archeonet-secrets:
