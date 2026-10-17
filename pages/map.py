@@ -397,7 +397,7 @@ if st.session_state["last_id"] != map_data["last_object_clicked_popup"]:
         #">Tag ID: {id}</p>
 
 else:
-    st.session_state.display_wisndow = False
+    st.session_state.display_window = False
     st.session_state["last_id"] = map_data["last_object_clicked_popup"]
     
 assets.ask_patreon()

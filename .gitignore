@@ -1,1 +1,31 @@
-/.vscode
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Keys, certificates, credentials
+keys/
+*.pem
+*.key
+*.crt
+
+# SQLite databases
+database/*.db
+*.db
+*.sqlite3
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Scratch & cache files
+code_cache.txt
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE configurations
+.vscode/
+.idea/
