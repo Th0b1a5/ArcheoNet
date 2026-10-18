@@ -11,7 +11,7 @@ Doesnt include Postgres with the docker compose.
 
 ### Dont forget to fill in the login secrets!
 
-## 1. Docker
+## A) Docker
 
 ### 1. Build image
 ```bash
@@ -23,7 +23,7 @@ docker build -t archeonet .
 docker run -p 8501:8501 archeonet
 ```
 
-## 2. Python
+## B) Python
 
 ### 1. Install dependencies
 ```bash
